@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:metia/colors/material_theme.dart';
+import 'package:metia/models/login_provider.dart';
+import 'package:metia/models/profile_provider.dart';
 import 'package:metia/screens/home_page.dart';
+import 'package:provider/provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,12 +15,17 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Color(0xFF65558F), brightness: Brightness.dark)),
-      home: const HomePage(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => LoginProvider()),
+        ChangeNotifierProvider(create: (context) => ProfileProvider()),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Flutter Demo',
+        theme: ThemeData(colorScheme: MaterialTheme.darkHighContrastScheme()),
+        home: const HomePage(),
+      ),
     );
   }
 }

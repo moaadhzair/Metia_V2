@@ -11,6 +11,10 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.8
   flutter_svg: ^2.2.0
+  provider: ^6.1.5
+  app_links: ^6.4.0
+  win32_registry: ^1.0.3
+  url_launcher: ^6.1.7
 
 
 dev_dependencies:
