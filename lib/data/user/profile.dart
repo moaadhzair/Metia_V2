@@ -52,7 +52,7 @@ class Statistics {
           stats.add({"Episodes\nWatched": anime[key]});
         }
         if (key == "count") {
-          stats.add({"Count": anime[key]});
+          stats.add({"Count\n": anime[key]});
         }
         
       }

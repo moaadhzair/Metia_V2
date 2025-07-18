@@ -63,6 +63,106 @@ class _ProfilePageState extends State<ProfilePage> {
     Profile user = Provider.of<LoginProvider>(context).user;
     bool hasBanner = user.bannerImage == "null" ? false : true;
 
+    return CustomScrollView(
+      slivers: [
+        SliverAppBar(
+          stretch: true,
+          
+          expandedHeight: 125,
+          toolbarHeight: 125,
+          collapsedHeight: 125,
+          title: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            spacing: 20,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image(
+                  image: Image.network(user.avatarLink).image,
+                  height: 100,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(
+                  user.name,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+            ],
+          ),
+
+          flexibleSpace: FlexibleSpaceBar(
+            stretchModes: [StretchMode.zoomBackground, StretchMode.fadeTitle],
+            background: SizedBox(
+              height: 125,
+              child: Stack(
+                children: [
+                  hasBanner
+                      ? Image(
+                          image: Image.network(user.bannerImage).image,
+                          width: double.maxFinite,
+                        )
+                      : Container(
+                          width: double.maxFinite,
+                          color: Colors.deepPurple,
+                        ),
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Theme.of(context).scaffoldBackgroundColor,
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: SizedBox(
+              height: 100,
+              child: Center(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  separatorBuilder: (context, index) => SizedBox(width: 5),
+                  itemCount: user.statistics.stats.length,
+                  scrollDirection: Axis.horizontal,
+                  itemBuilder: (context, index) {
+                    final entry = user.statistics.stats[index].entries.first;
+                    return _buildDeatileTile(entry.key, entry.value);
+                  },
+                ),
+              ),
+            ),
+          ),
+        ),
+        ...List.generate(100, (index) {
+          return SliverToBoxAdapter(
+            child: Container(
+              height: 80,
+              margin: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+              color: Colors.primaries[index % Colors.primaries.length],
+              alignment: Alignment.center,
+              child: Text(
+                'Sliver Item ${index + 1}',
+                style: TextStyle(fontSize: 20, color: Colors.white),
+              ),
+            ),
+          );
+        }),
+      ],
+    );
+
+    /*
+
     return Column(
       children: [
         SizedBox(
@@ -119,44 +219,29 @@ class _ProfilePageState extends State<ProfilePage> {
             ],
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: SizedBox(
-            height: 100,
-            child: Center(
-              child: ListView.separated(
-                shrinkWrap: true,
-                separatorBuilder: (context, index) => SizedBox(width: 5,),
-                itemCount: user.statistics.stats.length,
-                scrollDirection: Axis.horizontal,
-                itemBuilder: (context, index) {
-                  final entry = user.statistics.stats[index].entries.first;
-                  return _buildDeatileTile(entry.key, entry.value);
-                },
-              ),
-            ),
-          ),
-        ),
+        
       ],
-    );
+    );*/
   }
 
   _buildDeatileTile(String name, int data) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        color: Color.fromARGB(168, 28, 14, 37),
-      ),
-      height: 100,
-      width: 100,
-      child: Column(
-        spacing: 10,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(name, style: TextStyle(fontWeight: FontWeight.w600), textAlign: TextAlign.center,),
-          Text("$data"),
-        ],
+    return Card(
+      child: SizedBox(
+        height: 100,
+        width: 100,
+        child: Column(
+          spacing: 10,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              name,
+              style: TextStyle(fontWeight: FontWeight.w600),
+              textAlign: TextAlign.center,
+            ),
+            Text("$data"),
+          ],
+        ),
       ),
     );
   }

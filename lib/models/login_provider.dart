@@ -25,8 +25,12 @@ class LoginProvider extends ChangeNotifier {
   void logIn(String authKey) async {
     _authKey = authKey;
     await _getUser();
-
     _isLoggedIn = true;
+    notifyListeners();
+  }
+
+  void reloadUserData() async {
+    await _getUser();
     notifyListeners();
   }
 

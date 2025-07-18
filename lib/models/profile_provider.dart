@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:metia/data/user/Profile.dart';
+import 'package:metia/data/user/profile.dart';
 
 class ProfileProvider extends ChangeNotifier {
   late Profile _user;
