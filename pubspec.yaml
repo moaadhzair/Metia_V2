@@ -2,6 +2,7 @@ name: metia
 description: "A new Flutter project."
 
 version: 1.0.03
+isar_version: &isar_version 3.1.0+1
 
 environment:
   sdk: ^3.8.1
@@ -15,15 +16,24 @@ dependencies:
   app_links: ^6.4.0
   win32_registry: ^1.0.3
   url_launcher: ^6.1.7
+  isar: *isar_version
+  isar_flutter_libs:
+    git: 
+      url: https://github.com/MrLittleWhite/isar_flutter_libs.git
+  path_provider: ^2.1.5
+  cached_network_image: any
 
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  isar_generator: *isar_version
+  build_runner: any
 
 
 flutter:
   assets:
     - assets/icons/logo.svg
   uses-material-design: true
+  

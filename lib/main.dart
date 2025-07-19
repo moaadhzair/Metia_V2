@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:metia/colors/material_theme.dart';
+import 'package:metia/data/user/user_data.dart';
 import 'package:metia/models/login_provider.dart';
 import 'package:metia/models/profile_provider.dart';
 import 'package:metia/screens/home_page.dart';
 import 'package:provider/provider.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await UserData.initialize();
   runApp(const MyApp());
 }
 

@@ -1,13 +1,14 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:metia/data/user/credentials.dart';
 import 'package:metia/data/user/profile.dart';
+import 'package:metia/data/user/user_data.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 
 class LoginProvider extends ChangeNotifier {
   bool _isLoggedIn = false;
-  late String _authKey;
   Profile _user = Profile(
     name: "Default",
     avatarLink:
@@ -22,8 +23,25 @@ class LoginProvider extends ChangeNotifier {
   bool get isLoggedIn => _isLoggedIn;
   Profile get user => _user;
 
+  LoginProvider() {
+    _initializeLoginState();
+  }
+
+  Future<void> _initializeLoginState() async {
+    String authKey = await _getAuthKey();
+    _isLoggedIn = authKey != "empty";
+    if (_isLoggedIn) {
+      await _getUser();
+    }
+    notifyListeners();
+  }
+
+  Future<String> _getAuthKey() async {
+    return await UserData.getAuthKey();
+  }
+
   void logIn(String authKey) async {
-    _authKey = authKey;
+    await UserData.saveAuthKey(authKey);
     await _getUser();
     _isLoggedIn = true;
     notifyListeners();
@@ -35,7 +53,8 @@ class LoginProvider extends ChangeNotifier {
   }
 
   Future<void> _getUser() async {
-    //for now just get the name and the id and the avatar link
+    String authKey = await _getAuthKey();
+    
     const String url = 'https://graphql.anilist.co';
     final Map<String, dynamic> body = {
       'query': '''
@@ -63,16 +82,15 @@ class LoginProvider extends ChangeNotifier {
       Uri.parse(url),
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer $_authKey',
+        'Authorization': 'Bearer $authKey',
       },
       body: jsonEncode(body),
     );
 
     final Map<String, dynamic> data = jsonDecode(response.body);
-
     var viewer = data['data']['Viewer'];
 
-    Profile user = Profile(
+    _user = Profile(
       name: viewer["name"],
       avatarLink: viewer["avatar"]["large"],
       bannerImage: viewer["bannerImage"] ?? "null",
@@ -81,11 +99,11 @@ class LoginProvider extends ChangeNotifier {
       userLibrary: [],
       statistics: Statistics.fromJson(viewer["statistics"]["anime"]),
     );
-    _user = user;
   }
 
   void logOut() {
     _isLoggedIn = false;
+    UserData.deletAuthKey();
     notifyListeners();
   }
 }

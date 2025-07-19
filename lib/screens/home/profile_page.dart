@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:metia/data/user/profile.dart';
@@ -77,8 +78,8 @@ class _ProfilePageState extends State<ProfilePage> {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: Image(
-                  image: Image.network(user.avatarLink).image,
+                child: CachedNetworkImage(
+                  imageUrl: user.avatarLink,
                   height: 100,
                 ),
               ),
@@ -99,8 +100,8 @@ class _ProfilePageState extends State<ProfilePage> {
               child: Stack(
                 children: [
                   hasBanner
-                      ? Image(
-                          image: Image.network(user.bannerImage).image,
+                      ? CachedNetworkImage(
+                          imageUrl: user.bannerImage,
                           width: double.maxFinite,
                         )
                       : Container(
