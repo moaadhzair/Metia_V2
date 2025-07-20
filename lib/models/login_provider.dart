@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 class LoginProvider extends ChangeNotifier {
   bool _isLoggedIn = false;
   Profile _user = Profile(
+    userActivity: [],
     name: "Default",
     avatarLink:
         "https://s4.anilist.co/file/anilistcdn/user/avatar/large/default.png",
@@ -54,7 +55,7 @@ class LoginProvider extends ChangeNotifier {
 
   Future<void> _getUser() async {
     String authKey = await _getAuthKey();
-    
+
     const String url = 'https://graphql.anilist.co';
     final Map<String, dynamic> body = {
       'query': '''
@@ -89,6 +90,7 @@ class LoginProvider extends ChangeNotifier {
 
     final Map<String, dynamic> data = jsonDecode(response.body);
     var viewer = data['data']['Viewer'];
+    ActivityPage activityPage = await _fetchUserActivities(viewer["id"], 1, 20);
 
     _user = Profile(
       name: viewer["name"],
@@ -98,7 +100,76 @@ class LoginProvider extends ChangeNotifier {
       userStatus: [],
       userLibrary: [],
       statistics: Statistics.fromJson(viewer["statistics"]["anime"]),
+      userActivity: activityPage.activities,
     );
+  }
+
+  Future<ActivityPage> _fetchUserActivities(
+    int userId,
+    int page,
+    int perPage,
+  ) async {
+    const String url = 'https://graphql.anilist.co';
+    String authKey = await _getAuthKey();
+
+    final query = '''
+    query (\$id: Int, \$type: ActivityType, \$page: Int, \$perPage: Int, ) {
+      Page(page: \$page, perPage: \$perPage) {
+        pageInfo {
+          total
+          perPage
+          currentPage
+          lastPage
+          hasNextPage
+        }
+        activities(userId: \$id, type: \$type, sort: [PINNED, ID_DESC]) {
+          ... on ListActivity {
+            type
+            status
+            progress
+            likeCount
+            createdAt
+            media {
+              id
+              type
+              status(version: 2)
+              isAdult
+              bannerImage
+              title {
+                english
+                romaji
+                native
+              }
+              coverImage {
+                large
+                color
+              }
+            }
+          }
+        }
+      }
+    }
+  ''';
+
+    final variables = {
+      "id": userId,
+      "type": "ANIME_LIST",
+      "page": page,
+      "perPage": perPage,
+    };
+
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $authKey',
+      },
+      body: jsonEncode({"query": query, "variables": variables}),
+    );
+
+    final data = jsonDecode(response.body)['data']['Page'];
+    var src = ActivityPage.fromJson(data);
+    return src;
   }
 
   void logOut() {

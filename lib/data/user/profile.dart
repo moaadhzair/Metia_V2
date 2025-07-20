@@ -1,5 +1,6 @@
-import 'dart:ui';
-import 'package:flutter/material.dart';
+// profile.dart
+
+import 'package:metia/anilist/anime.dart';
 
 class Profile {
   String name;
@@ -9,6 +10,7 @@ class Profile {
   List<dynamic> userStatus;
   List<dynamic> userLibrary;
   Statistics statistics;
+  List<UserActivity> userActivity;
 
   Profile({
     required this.name,
@@ -18,6 +20,7 @@ class Profile {
     required this.userStatus,
     required this.userLibrary,
     required this.statistics,
+    required this.userActivity,
   });
 
   factory Profile.fromJson(Map<String, dynamic> json) {
@@ -28,7 +31,10 @@ class Profile {
       id: json['id'] ?? 0,
       userStatus: json['userStatus'] ?? [],
       userLibrary: json['userLibrary'] ?? [],
-      statistics: json['statistics'] ?? Statistics.fromJson(json['statistics']),
+      statistics: Statistics.fromJson(json['statistics']),
+      userActivity: (json['userActivity'] as List<dynamic>? ?? [])
+          .map((e) => UserActivity.fromJson(e))
+          .toList(),
     );
   }
 }
@@ -45,7 +51,7 @@ class Statistics {
         if (minutes >= 120) {
           stats.add({'Hours\nWatched': minutes ~/ 60});
         } else {
-          stats.add({'Minute\nsWatched': minutes});
+          stats.add({'Minute\nWatched': minutes});
         }
       } else {
         if (key == "episodesWatched") {
@@ -54,8 +60,27 @@ class Statistics {
         if (key == "count") {
           stats.add({"Count\n": anime[key]});
         }
-        
       }
     }
   }
 }
+
+class ActivityPage {
+  final PageInfo pageInfo;
+  final List<UserActivity> activities;
+
+  ActivityPage({
+    required this.pageInfo,
+    required this.activities,
+  });
+
+  factory ActivityPage.fromJson(Map<String, dynamic> json) {
+    return ActivityPage(
+      pageInfo: PageInfo.fromJson(json['pageInfo']),
+      activities: (json['activities'] as List<dynamic>)
+          .map((e) => UserActivity.fromJson(e))
+          .toList(),
+    );
+  }
+}
+

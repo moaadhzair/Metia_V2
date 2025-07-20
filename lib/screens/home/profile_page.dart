@@ -68,7 +68,7 @@ class _ProfilePageState extends State<ProfilePage> {
       slivers: [
         SliverAppBar(
           stretch: true,
-          
+
           expandedHeight: 125,
           toolbarHeight: 125,
           collapsedHeight: 125,
@@ -145,20 +145,119 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ),
         ),
-        ...List.generate(100, (index) {
-          return SliverToBoxAdapter(
-            child: Container(
-              height: 80,
-              margin: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-              color: Colors.primaries[index % Colors.primaries.length],
-              alignment: Alignment.center,
-              child: Text(
-                'Sliver Item ${index + 1}',
-                style: TextStyle(fontSize: 20, color: Colors.white),
-              ),
-            ),
-          );
-        }),
+        SliverPadding(
+          padding: EdgeInsets.symmetric(horizontal: 8),
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate((context, index) {
+              final activity = user.userActivity[index];
+              return Column(
+                children: [
+                  if (index != 0 || index != user.userActivity.length)
+                    const SizedBox(height: 2),
+                  Card(
+                    child: Row(
+                      children: [
+                        CachedNetworkImage(
+                          imageUrl: activity.media.coverImage,
+                          height: 100,
+                          width: 75,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => Container(
+                            width: 75,
+                            height: 100,
+                            color: Colors.grey[300],
+                          ),
+                          errorWidget: (context, url, error) => Container(
+                            width: 75,
+                            height: 100,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        SizedBox(width: 2),
+                        Expanded(
+                          child: SizedBox(
+                            height: 100,
+
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                activity.media.bannerImage.isNotEmpty
+                                    ? CachedNetworkImage(
+                                        imageUrl: activity.media.bannerImage,
+                                        height: 100,
+                                        fit: BoxFit.cover,
+                                        placeholder: (context, url) =>
+                                            Container(
+                                              height: 100,
+                                              color: Colors.grey[300],
+                                            ),
+                                        errorWidget: (context, url, error) =>
+                                            Container(
+                                              height: 100,
+                                              color: Colors.grey,
+                                            ),
+                                      )
+                                    : Container(
+                                        height: 100,
+                                        color: activity.media.color,
+                                      ),
+
+                                // Gradient overlay
+                                Container(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        Colors.transparent,
+                                        Theme.of(
+                                          context,
+                                        ).scaffoldBackgroundColor.withAlpha(
+                                          180,
+                                        ), // You can change this to match your theme
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: EdgeInsets.all(8),
+                                  child: Align(
+                                    alignment: Alignment.bottomLeft,
+                                    child: activity.status == "watched episode"
+                                        ? Text(
+                                            "${activity.status[0].toUpperCase()}${activity.status.substring(1)} ${activity.progress} of ${activity.media.title.english ?? activity.media.title.romaji ?? activity.media.title.nativeTitle}",
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w500,
+                                              color: ColorScheme.fromSeed(
+                                                seedColor:
+                                                    activity.media.color!,
+                                              ).onInverseSurface,
+                                            ),
+                                          )
+                                        : Text(
+                                            "${activity.status[0].toUpperCase()}${activity.status.substring(1)} ${activity.media.title.english ?? activity.media.title.romaji ?? activity.media.title.nativeTitle}",
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w500,
+                                              color: ColorScheme.fromSeed(
+                                                seedColor:
+                                                    activity.media.color!,
+                                              ).onInverseSurface,
+                                            ),
+                                          ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            }, childCount: user.userActivity.length),
+          ),
+        ),
       ],
     );
 
