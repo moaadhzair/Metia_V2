@@ -103,6 +103,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       ? CachedNetworkImage(
                           imageUrl: user.bannerImage,
                           width: double.maxFinite,
+													 fit: BoxFit.cover,
                         )
                       : Container(
                           width: double.maxFinite,
