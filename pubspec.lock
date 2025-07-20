@@ -389,8 +389,8 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "59103190aa2ac03041d61ad6d127b540be079ec8"
-      url: "https://github.com/MrLittleWhite/isar_flutter_libs.git"
+      resolved-ref: "384caa490d27676796b7891c375b3c4b5b659e1e"
+      url: "https://github.com/moaadhzair/isar_flutter_libs.git"
     source: git
     version: "3.1.0+1"
   isar_generator:
