@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:metia/anilist/anime.dart';
 import 'package:metia/data/user/profile.dart';
 import 'package:metia/models/login_provider.dart';
 import 'package:provider/provider.dart';
@@ -14,297 +15,184 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  late final ScrollController _scrollController;
+  bool _hasReachedBottom = false;
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    _scrollController = ScrollController()
+      ..addListener(() {
+        if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent) {
+          if (!_hasReachedBottom) {
+            Provider.of<LoginProvider>(
+              context,
+              listen: false,
+            ).loadMoreActivities();
+            _hasReachedBottom = true;
+          }
+        } else {
+          // Reset flag if user scrolls back up
+          if (_hasReachedBottom) {
+            _hasReachedBottom = false;
+          }
+        }
+      });
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
-    bool isLoggedIn = Provider.of<LoginProvider>(
-      context,
-    ).isLoggedIn; // Replace with actual login check logic
+    bool isLoggedIn = Provider.of<LoginProvider>(context).isLoggedIn;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-        actions: [
-          if (isLoggedIn)
-            PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert),
-              onSelected: (value) {
-                switch (value) {
-                  case "logout":
-                    Provider.of<LoginProvider>(context, listen: false).logOut();
-                }
-              },
-              itemBuilder: (BuildContext context) => [
-                const PopupMenuItem<String>(
-                  value: 'logout',
-                  child: Text('Log Out'),
+      body: isLoggedIn
+          ? _buildProfile(context) // <- pass context
+          : CustomScrollView(
+              slivers: [
+                SliverAppBar(
+                  pinned: false,
+                  floating: false,
+                  snap: false,
+                  title: const Text('Profile'),
+                  actions: [
+                    PopupMenuButton<String>(
+                      icon: const Icon(Icons.more_vert),
+                      onSelected: (value) {
+                        if (value == 'logout') {
+                          Provider.of<LoginProvider>(
+                            context,
+                            listen: false,
+                          ).logOut();
+                        }
+                      },
+                      itemBuilder: (BuildContext context) => const [
+                        PopupMenuItem<String>(
+                          value: 'logout',
+                          child: Text('Log Out'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        if (!await launchUrl(
+                          Uri.parse(
+                            "https://anilist.co/api/v2/oauth/authorize?client_id=25588&redirect_uri=metia://&response_type=code",
+                          ),
+                        )) {
+                          throw Exception('Could not launch url');
+                        }
+                      },
+                      child: Text("Log In"),
+                    ),
+                  ),
                 ),
               ],
-            ),
-        ],
-      ),
-      body: isLoggedIn
-          ? _buildProfile()
-          : Center(
-              child: ElevatedButton(
-                onPressed: () async {
-                  if (!await launchUrl(
-                    Uri.parse(
-                      "https://anilist.co/api/v2/oauth/authorize?client_id=25588&redirect_uri=metia://&response_type=code",
-                    ),
-                  )) {
-                    throw Exception('Could not launch url');
-                  }
-                },
-                child: Text("Log In"),
-              ),
             ),
     );
   }
 
-  _buildProfile() {
+  Widget _buildProfile(BuildContext context) {
     Profile user = Provider.of<LoginProvider>(context).user;
-    bool hasBanner = user.bannerImage == "null" ? false : true;
+    bool hasBanner = user.bannerImage != "null";
 
-    return CustomScrollView(
-      slivers: [
-        SliverAppBar(
-          stretch: true,
+    return RefreshIndicator.adaptive(
+      triggerMode: RefreshIndicatorTriggerMode.onEdge,
+      onRefresh: () {
+        return Provider.of<LoginProvider>(
+          context,
+          listen: false,
+        ).reloadUserData();
+      },
 
-          expandedHeight: 125,
-          toolbarHeight: 125,
-          collapsedHeight: 125,
-          title: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            spacing: 20,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: CachedNetworkImage(
-                  imageUrl: user.avatarLink,
-                  height: 100,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Text(
-                  user.name,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
+      child: CustomScrollView(
+        controller: _scrollController,
+
+        slivers: [
+          //main appbar
+          SliverAppBar(
+            pinned: false,
+            floating: true,
+            snap: false,
+            title: const Text('Profile'),
+            actions: [
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert),
+                onSelected: (value) {
+                  if (value == 'logout') {
+                    Provider.of<LoginProvider>(context, listen: false).logOut();
+                  }
+                },
+                itemBuilder: (BuildContext context) => const [
+                  PopupMenuItem<String>(
+                    value: 'logout',
+                    child: Text('Log Out'),
+                  ),
+                ],
               ),
             ],
           ),
-
-          flexibleSpace: FlexibleSpaceBar(
-            stretchModes: [StretchMode.zoomBackground, StretchMode.fadeTitle],
-            background: SizedBox(
-              height: 125,
-              child: Stack(
-                children: [
-                  hasBanner
+          //user's avatar and banner
+          SliverToBoxAdapter(
+            child: Stack(
+              children: [
+                // Banner Background
+                SizedBox(
+                  height: 125,
+                  width: double.infinity,
+                  child: hasBanner
                       ? CachedNetworkImage(
                           imageUrl: user.bannerImage,
-                          width: double.maxFinite,
-                        )
-                      : Container(
-                          width: double.maxFinite,
-                          color: Colors.deepPurple,
-                        ),
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.transparent,
-                          Theme.of(context).scaffoldBackgroundColor,
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: SizedBox(
-              height: 100,
-              child: Center(
-                child: ListView.separated(
-                  shrinkWrap: true,
-                  separatorBuilder: (context, index) => SizedBox(width: 5),
-                  itemCount: user.statistics.stats.length,
-                  scrollDirection: Axis.horizontal,
-                  itemBuilder: (context, index) {
-                    final entry = user.statistics.stats[index].entries.first;
-                    return _buildDeatileTile(entry.key, entry.value);
-                  },
-                ),
-              ),
-            ),
-          ),
-        ),
-        SliverPadding(
-          padding: EdgeInsets.symmetric(horizontal: 8),
-          sliver: SliverList(
-            delegate: SliverChildBuilderDelegate((context, index) {
-              final activity = user.userActivity[index];
-              return Column(
-                children: [
-                  if (index != 0 || index != user.userActivity.length)
-                    const SizedBox(height: 2),
-                  Card(
-                    child: Row(
-                      children: [
-                        CachedNetworkImage(
-                          imageUrl: activity.media.coverImage,
-                          height: 100,
-                          width: 75,
                           fit: BoxFit.cover,
-                          placeholder: (context, url) => Container(
-                            width: 75,
-                            height: 100,
-                            color: Colors.grey[300],
-                          ),
-                          errorWidget: (context, url, error) => Container(
-                            width: 75,
-                            height: 100,
-                            color: Colors.grey,
-                          ),
-                        ),
-                        SizedBox(width: 2),
-                        Expanded(
-                          child: SizedBox(
-                            height: 100,
+                        )
+                      : Container(color: Colors.deepPurple),
+                ),
 
-                            child: Stack(
-                              fit: StackFit.expand,
-                              children: [
-                                activity.media.bannerImage.isNotEmpty
-                                    ? CachedNetworkImage(
-                                        imageUrl: activity.media.bannerImage,
-                                        height: 100,
-                                        fit: BoxFit.cover,
-                                        placeholder: (context, url) =>
-                                            Container(
-                                              height: 100,
-                                              color: Colors.grey[300],
-                                            ),
-                                        errorWidget: (context, url, error) =>
-                                            Container(
-                                              height: 100,
-                                              color: Colors.grey,
-                                            ),
-                                      )
-                                    : Container(
-                                        height: 100,
-                                        color: activity.media.color,
-                                      ),
-
-                                // Gradient overlay
-                                Container(
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topCenter,
-                                      end: Alignment.bottomCenter,
-                                      colors: [
-                                        Colors.transparent,
-                                        Theme.of(
-                                          context,
-                                        ).scaffoldBackgroundColor.withAlpha(
-                                          180,
-                                        ), // You can change this to match your theme
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.all(8),
-                                  child: Align(
-                                    alignment: Alignment.bottomLeft,
-                                    child: activity.status == "watched episode"
-                                        ? Text(
-                                            "${activity.status[0].toUpperCase()}${activity.status.substring(1)} ${activity.progress} of ${activity.media.title.english ?? activity.media.title.romaji ?? activity.media.title.nativeTitle}",
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.w500,
-                                              color: ColorScheme.fromSeed(
-                                                seedColor:
-                                                    activity.media.color!,
-                                              ).onInverseSurface,
-                                            ),
-                                          )
-                                        : Text(
-                                            "${activity.status[0].toUpperCase()}${activity.status.substring(1)} ${activity.media.title.english ?? activity.media.title.romaji ?? activity.media.title.nativeTitle}",
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.w500,
-                                              color: ColorScheme.fromSeed(
-                                                seedColor:
-                                                    activity.media.color!,
-                                              ).onInverseSurface,
-                                            ),
-                                          ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                // Gradient Overlay
+                Container(
+                  height: 125,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Theme.of(context).scaffoldBackgroundColor,
                       ],
                     ),
                   ),
-                ],
-              );
-            }, childCount: user.userActivity.length),
-          ),
-        ),
-      ],
-    );
-
-    /*
-
-    return Column(
-      children: [
-        SizedBox(
-          height: 125,
-          child: Stack(
-            children: [
-              hasBanner
-                  ? Image(
-                      image: Image.network(user.bannerImage).image,
-                      width: double.maxFinite,
-                    )
-                  : Container(
-                      width: double.maxFinite,
-                      color: Colors.deepPurple,
-                    ),
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      Theme.of(context).scaffoldBackgroundColor,
-                    ],
-                  ),
                 ),
-              ),
-              Padding(
-                padding: EdgeInsets.only(left: 16, bottom: 16),
-                child: Align(
-                  alignment: Alignment.bottomLeft,
+
+                // Avatar + Name Row
+                Positioned(
+                  bottom: 16,
+                  left: 16,
+                  right: 16,
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
-                    spacing: 20,
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
-                        child: Image(
-                          image: Image.network(user.avatarLink).image,
+                        child: CachedNetworkImage(
+                          imageUrl: user.avatarLink,
                           height: 100,
                         ),
                       ),
+                      const SizedBox(width: 10),
                       Padding(
                         padding: const EdgeInsets.only(bottom: 8),
                         child: Text(
@@ -315,13 +203,162 @@ class _ProfilePageState extends State<ProfilePage> {
                     ],
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        
-      ],
-    );*/
+          //user's statistics
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: SizedBox(
+                height: 100,
+                child: Center(
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(width: 5),
+                    itemCount: user.statistics.stats.length,
+                    scrollDirection: Axis.horizontal,
+                    itemBuilder: (context, index) {
+                      final entry = user.statistics.stats[index].entries.first;
+                      return _buildDeatileTile(entry.key, entry.value);
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ),
+          //user's activity
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate((context, index) {
+                final activity = user.userActivityPage.activities[index];
+                return Column(
+                  children: [
+                    if (index != 0 ||
+                        index != user.userActivityPage.activities.length)
+                      const SizedBox(height: 2),
+                    _buildActivityTile(activity),
+                  ],
+                );
+              }, childCount: user.userActivityPage.activities.length),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: SizedBox(
+              width: double.infinity,
+              height: 100,
+              child: Center(
+                child: Text(
+                  Provider.of<LoginProvider>(context).hasNextPage
+                      ? "Loading more..."
+                      : "No more activities.",
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  _buildActivityTile(UserActivity activity) {
+    DateTime createdDate = DateTime.fromMillisecondsSinceEpoch(
+      activity.createdAt * 1000,
+    );
+    Duration difference = DateTime.now().difference(createdDate);
+
+    String time = "";
+    if (difference.inDays >= 1) {
+      time = '${difference.inDays}d ago';
+    } else if (difference.inHours >= 1) {
+      time = '${difference.inHours}h ago';
+    } else if (difference.inMinutes >= 1) {
+      time = '${difference.inMinutes}m ago';
+    } else {
+      time = 'Just now';
+    }
+
+    return Card(
+      child: Row(
+        children: [
+          CachedNetworkImage(
+            imageUrl: activity.media.coverImage,
+            height: 100,
+            width: 75,
+            fit: BoxFit.cover,
+            placeholder: (context, url) =>
+                Container(width: 75, height: 100, color: Colors.grey[300]),
+            errorWidget: (context, url, error) =>
+                Container(width: 75, height: 100, color: Colors.grey),
+          ),
+          const SizedBox(width: 2),
+          Expanded(
+            child: SizedBox(
+              height: 100,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  activity.media.bannerImage.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: activity.media.bannerImage,
+                          height: 100,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) =>
+                              Container(height: 100, color: Colors.grey[300]),
+                          errorWidget: (context, url, error) =>
+                              Container(height: 100, color: Colors.grey),
+                        )
+                      : Container(height: 100, color: activity.media.color),
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent.withAlpha(50),
+                          Theme.of(
+                            context,
+                          ).scaffoldBackgroundColor.withAlpha(220),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Text(
+                          activity.status == "watched episode"
+                              ? "Watched episode ${activity.progress} of ${activity.media.title.english ?? activity.media.title.romaji ?? activity.media.title.nativeTitle}"
+                              : "${activity.status[0].toUpperCase()}${activity.status.substring(1)} ${activity.media.title.english ?? activity.media.title.romaji ?? activity.media.title.nativeTitle}",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            color: ColorScheme.fromSeed(
+                              seedColor: activity.media.color ?? Colors.blue,
+                            ).onInverseSurface,
+                          ),
+                        ),
+                        Text(
+                          time,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            color: Colors.orange,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   _buildDeatileTile(String name, int data) {

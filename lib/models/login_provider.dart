@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:metia/anilist/anime.dart';
 import 'package:metia/data/user/credentials.dart';
 import 'package:metia/data/user/profile.dart';
 import 'package:metia/data/user/user_data.dart';
@@ -8,9 +9,19 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 
 class LoginProvider extends ChangeNotifier {
+  bool hasNextPage = true;
   bool _isLoggedIn = false;
   Profile _user = Profile(
-    userActivity: [],
+    userActivityPage: ActivityPage(
+      pageInfo: PageInfo(
+        total: 0,
+        perPage: 0,
+        currentPage: 0,
+        lastPage: 0,
+        hasNextPage: false,
+      ),
+      activities: [],
+    ),
     name: "Default",
     avatarLink:
         "https://s4.anilist.co/file/anilistcdn/user/avatar/large/default.png",
@@ -21,11 +32,40 @@ class LoginProvider extends ChangeNotifier {
     statistics: Statistics(),
   );
 
+  int _currentActivityPage = 1;
+  bool _isLoadingMoreActivities = false;
+
   bool get isLoggedIn => _isLoggedIn;
   Profile get user => _user;
+  List<UserActivity> get userActivities => _user.userActivityPage.activities;
 
   LoginProvider() {
     _initializeLoginState();
+  }
+
+  Future<void> loadMoreActivities() async {
+    if (_isLoadingMoreActivities) return; // prevent duplicate loads
+
+    _isLoadingMoreActivities = true;
+    _currentActivityPage++;
+
+    try {
+      ActivityPage newPage = await _fetchUserActivities(
+        _user.id,
+        _currentActivityPage,
+        20,
+      );
+
+      hasNextPage = newPage.pageInfo.hasNextPage;
+
+      // Append new activities to existing list
+      _user.userActivityPage.activities.addAll(newPage.activities);
+      notifyListeners();
+    } catch (e) {
+      debugPrint(e.toString());
+    } finally {
+      _isLoadingMoreActivities = false;
+    }
   }
 
   Future<void> _initializeLoginState() async {
@@ -48,7 +88,7 @@ class LoginProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void reloadUserData() async {
+  Future<void> reloadUserData() async {
     await _getUser();
     notifyListeners();
   }
@@ -100,7 +140,7 @@ class LoginProvider extends ChangeNotifier {
       userStatus: [],
       userLibrary: [],
       statistics: Statistics.fromJson(viewer["statistics"]["anime"]),
-      userActivity: activityPage.activities,
+      userActivityPage: activityPage,
     );
   }
 

@@ -10,7 +10,7 @@ class Profile {
   List<dynamic> userStatus;
   List<dynamic> userLibrary;
   Statistics statistics;
-  List<UserActivity> userActivity;
+  ActivityPage userActivityPage; // Now stores ActivityPage instead of List
 
   Profile({
     required this.name,
@@ -20,7 +20,7 @@ class Profile {
     required this.userStatus,
     required this.userLibrary,
     required this.statistics,
-    required this.userActivity,
+    required this.userActivityPage,
   });
 
   factory Profile.fromJson(Map<String, dynamic> json) {
@@ -32,9 +32,10 @@ class Profile {
       userStatus: json['userStatus'] ?? [],
       userLibrary: json['userLibrary'] ?? [],
       statistics: Statistics.fromJson(json['statistics']),
-      userActivity: (json['userActivity'] as List<dynamic>? ?? [])
-          .map((e) => UserActivity.fromJson(e))
-          .toList(),
+      userActivityPage: ActivityPage.fromJson({
+        'pageInfo': json['pageInfo'] ?? {},
+        'activities': json['userActivity'] ?? [],
+      }),
     );
   }
 }
@@ -69,10 +70,7 @@ class ActivityPage {
   final PageInfo pageInfo;
   final List<UserActivity> activities;
 
-  ActivityPage({
-    required this.pageInfo,
-    required this.activities,
-  });
+  ActivityPage({required this.pageInfo, required this.activities});
 
   factory ActivityPage.fromJson(Map<String, dynamic> json) {
     return ActivityPage(
@@ -83,4 +81,3 @@ class ActivityPage {
     );
   }
 }
-
