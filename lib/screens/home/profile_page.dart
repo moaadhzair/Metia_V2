@@ -33,7 +33,7 @@ class _ProfilePageState extends State<ProfilePage> {
         if (_scrollController.position.pixels >=
             _scrollController.position.maxScrollExtent) {
           if (!_hasReachedBottom) {
-            Provider.of<LoginProvider>(
+            Provider.of<UserProvider>(
               context,
               listen: false,
             ).loadMoreActivities();
@@ -51,7 +51,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    bool isLoggedIn = Provider.of<LoginProvider>(context).isLoggedIn;
+    bool isLoggedIn = Provider.of<UserProvider>(context).isLoggedIn;
 
     return Scaffold(
       body: isLoggedIn
@@ -68,7 +68,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       icon: const Icon(Icons.more_vert),
                       onSelected: (value) {
                         if (value == 'logout') {
-                          Provider.of<LoginProvider>(
+                          Provider.of<UserProvider>(
                             context,
                             listen: false,
                           ).logOut();
@@ -106,13 +106,13 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildProfile(BuildContext context) {
-    Profile user = Provider.of<LoginProvider>(context).user;
-    bool hasBanner = user.bannerImage != "null";
+    Profile user = Provider.of<UserProvider>(context).user;
+    bool hasBanner = user.bannerImage != "null" && user.bannerImage != "";
 
     return RefreshIndicator.adaptive(
       triggerMode: RefreshIndicatorTriggerMode.onEdge,
       onRefresh: () {
-        return Provider.of<LoginProvider>(
+        return Provider.of<UserProvider>(
           context,
           listen: false,
         ).reloadUserData();
@@ -133,7 +133,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 icon: const Icon(Icons.more_vert),
                 onSelected: (value) {
                   if (value == 'logout') {
-                    Provider.of<LoginProvider>(context, listen: false).logOut();
+                    Provider.of<UserProvider>(context, listen: false).logOut();
                   }
                 },
                 itemBuilder: (BuildContext context) => const [
@@ -251,7 +251,7 @@ class _ProfilePageState extends State<ProfilePage> {
               height: 100,
               child: Center(
                 child: Text(
-                  Provider.of<LoginProvider>(context).hasNextPage
+                  Provider.of<UserProvider>(context).hasNextPage
                       ? "Loading more..."
                       : "No more activities.",
                 ),
@@ -284,7 +284,7 @@ class _ProfilePageState extends State<ProfilePage> {
       child: Row(
         children: [
           CachedNetworkImage(
-            imageUrl: activity.media.coverImage,
+            imageUrl: activity.media.coverImage.large,
             height: 100,
             width: 75,
             fit: BoxFit.cover,
@@ -300,9 +300,9 @@ class _ProfilePageState extends State<ProfilePage> {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  activity.media.bannerImage.isNotEmpty
+                  activity.media.bannerImage != null
                       ? CachedNetworkImage(
-                          imageUrl: activity.media.bannerImage,
+                          imageUrl: activity.media.bannerImage!,
                           height: 100,
                           fit: BoxFit.cover,
                           placeholder: (context, url) =>
@@ -333,8 +333,8 @@ class _ProfilePageState extends State<ProfilePage> {
                       children: [
                         Text(
                           activity.status == "watched episode"
-                              ? "Watched episode ${activity.progress} of ${activity.media.title.english ?? activity.media.title.romaji ?? activity.media.title.nativeTitle}"
-                              : "${activity.status[0].toUpperCase()}${activity.status.substring(1)} ${activity.media.title.english ?? activity.media.title.romaji ?? activity.media.title.nativeTitle}",
+                              ? "Watched episode ${activity.progress} of ${activity.media.title.english ?? activity.media.title.romaji ?? activity.media.title.native}"
+                              : "${activity.status[0].toUpperCase()}${activity.status.substring(1)} ${activity.media.title.english ?? activity.media.title.romaji ?? activity.media.title.native}",
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
                             color: ColorScheme.fromSeed(

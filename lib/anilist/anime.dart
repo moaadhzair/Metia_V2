@@ -4,63 +4,138 @@ import 'dart:ui';
 
 class Media {
   final int id;
-  final String type;
-  final String status;
-  final bool isAdult;
-  final String bannerImage;
+  final String? description;
+  final List<String>? genres;
   final Title title;
-  final String coverImage;
+  final int? episodes;
+  final int? averageScore;
+  final String? season;
+  final int? seasonYear;
+  final String? status;
+  final String? type;
+  final bool? isAdult;
+  final String? bannerImage;
+  final CoverImage coverImage;
+  final int? duration;
+  final NextAiringEpisode? nextAiringEpisode;
   final Color? color;
 
   Media({
     required this.id,
-    required this.type,
-    required this.status,
-    required this.isAdult,
-    required this.bannerImage,
     required this.title,
     required this.coverImage,
-    required this.color,
+    this.description,
+    this.genres,
+    this.episodes,
+    this.averageScore,
+    this.season,
+    this.seasonYear,
+    this.status,
+    this.type,
+    this.isAdult,
+    this.bannerImage,
+    this.duration,
+    this.nextAiringEpisode,
+    this.color,
   });
+
   static Color? _parseColor(String? hexColor) {
     if (hexColor == null || hexColor.isEmpty) return null;
     hexColor = hexColor.replaceAll('#', '');
-    if (hexColor.length == 6) {
-      hexColor = 'FF$hexColor'; // add full opacity if missing
-    }
+    if (hexColor.length == 6)
+      hexColor = 'FF$hexColor'; // Add opacity if missing
     return Color(int.parse('0x$hexColor'));
   }
 
-  factory Media.fromJson(Map<String, dynamic> json) {
+  factory Media.fromJson(Map<String, dynamic>? json) {
+    if (json == null) {
+      return Media(
+        id: 0,
+        title: Title.fromJson({}),
+        coverImage: CoverImage.fromJson({}),
+      );
+    }
+
     return Media(
       id: json['id'] ?? 0,
-      type: json['type'] ?? '',
-      status: json['status'] ?? '',
-      isAdult: json['isAdult'] ?? false,
-      bannerImage: json['bannerImage'] ?? '',
       title: Title.fromJson(json['title'] ?? {}),
-      coverImage: json['coverImage']?['large'] ?? '',
+      description: json['description'],
+      genres: (json['genres'] as List<dynamic>?)
+          ?.map((e) => e.toString())
+          .toList(),
+      episodes: json['episodes'],
+      averageScore: json['averageScore'],
+      season: json['season'],
+      seasonYear: json['seasonYear'],
+      status: json['status'],
+      type: json['type'],
+      isAdult: json['isAdult'],
+      bannerImage: json['bannerImage'],
+      duration: json['duration'],
+      nextAiringEpisode: json['nextAiringEpisode'] != null
+          ? NextAiringEpisode.fromJson(json['nextAiringEpisode'])
+          : null,
+      coverImage: CoverImage.fromJson(json['coverImage'] ?? {}),
       color: _parseColor(json['coverImage']?['color']),
     );
   }
 }
 
 class Title {
-  final String english;
-  final String romaji;
-  final String nativeTitle;
+  final String? romaji;
+  final String? english;
+  final String? native;
 
-  Title({
-    required this.english,
-    required this.romaji,
-    required this.nativeTitle,
+  Title({this.romaji, this.english, this.native});
+
+  factory Title.fromJson(Map<String, dynamic>? json) {
+    if (json == null) {
+      return Title();
+    }
+    return Title(
+      romaji: json['romaji'],
+      english: json['english'],
+      native: json['native'],
+    );
+  }
+}
+
+class CoverImage {
+  final String large;
+  final String extraLarge;
+  final String medium;
+
+  CoverImage({
+    required this.large,
+    required this.extraLarge,
+    required this.medium,
   });
 
-  factory Title.fromJson(Map<String, dynamic> json) {
-    return Title(
-      english: json['english'] ?? '',
-      romaji: json['romaji'] ?? '',
-      nativeTitle: json['native'] ?? '',
+  factory CoverImage.fromJson(Map<String, dynamic>? json) {
+    if (json == null) {
+      return CoverImage(large: '', extraLarge: '', medium: '');
+    }
+    return CoverImage(
+      large: json['large'] ?? '',
+      extraLarge: json['extraLarge'] ?? '',
+      medium: json['medium'] ?? '',
+    );
+  }
+}
+
+class NextAiringEpisode {
+  final int airingAt;
+  final int episode;
+
+  NextAiringEpisode({required this.airingAt, required this.episode});
+
+  factory NextAiringEpisode.fromJson(Map<String, dynamic>? json) {
+    if (json == null) {
+      return NextAiringEpisode(airingAt: 0, episode: 0);
+    }
+    return NextAiringEpisode(
+      airingAt: json['airingAt'] ?? 0,
+      episode: json['episode'] ?? 0,
     );
   }
 }
@@ -80,7 +155,16 @@ class PageInfo {
     required this.hasNextPage,
   });
 
-  factory PageInfo.fromJson(Map<String, dynamic> json) {
+  factory PageInfo.fromJson(Map<String, dynamic>? json) {
+    if (json == null) {
+      return PageInfo(
+        total: 0,
+        perPage: 0,
+        currentPage: 1,
+        lastPage: 1,
+        hasNextPage: false,
+      );
+    }
     return PageInfo(
       total: json['total'] ?? 0,
       perPage: json['perPage'] ?? 0,
@@ -108,7 +192,17 @@ class UserActivity {
     required this.media,
   });
 
-  factory UserActivity.fromJson(Map<String, dynamic> json) {
+  factory UserActivity.fromJson(Map<String, dynamic>? json) {
+    if (json == null) {
+      return UserActivity(
+        type: '',
+        status: '',
+        progress: '',
+        likeCount: 0,
+        createdAt: 0,
+        media: Media.fromJson({}),
+      );
+    }
     return UserActivity(
       type: json['type'] ?? '',
       status: json['status'] ?? '',

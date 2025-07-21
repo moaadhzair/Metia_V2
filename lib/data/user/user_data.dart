@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 import 'package:metia/data/user/credentials.dart';
 import 'package:path_provider/path_provider.dart';
@@ -28,7 +29,10 @@ class UserData {
   }
 
   static Future<String> getAuthKey() async {
+    
     List<UserCredentials> creds = await isar.userCredentials.where().findAll();
+    
+
     if (creds.isEmpty) {
       return "empty";
     } else {

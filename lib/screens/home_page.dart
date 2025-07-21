@@ -25,6 +25,7 @@ class _HomePageState extends State<HomePage>
 
   @override
   void initState() {
+    
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(() {
       setState(() {});
@@ -45,7 +46,7 @@ class _HomePageState extends State<HomePage>
   Future<void> initDeepLinks() async {
     // Handle links
     _linkSubscription = AppLinks().uriLinkStream.listen((uri) async {
-      debugPrint('onAppLink: $uri');
+      
       String authorizationCode = uri.toString().replaceAll(
         "metia://?code=",
         "",
@@ -66,12 +67,12 @@ class _HomePageState extends State<HomePage>
           body: jsonEncode(payload),
         );
 
-        print("A request to the AniList API has been made!");
+        
 
         if (response.statusCode == 200) {
           final Map<String, dynamic> responseData = jsonDecode(response.body);
           if (mounted) {
-            Provider.of<LoginProvider>(
+            Provider.of<UserProvider>(
               context,
               listen: false,
             ).logIn(responseData['access_token'].toString());
@@ -87,6 +88,8 @@ class _HomePageState extends State<HomePage>
 
   @override
   Widget build(BuildContext context) {
+    Provider.of<UserProvider>(context).isLoggedIn;
+
     return Scaffold(
       appBar: AppBar(
         leading: Padding(

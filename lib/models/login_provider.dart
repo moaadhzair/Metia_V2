@@ -1,14 +1,15 @@
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Title;
 import 'package:metia/anilist/anime.dart';
 import 'package:metia/data/user/credentials.dart';
 import 'package:metia/data/user/profile.dart';
 import 'package:metia/data/user/user_data.dart';
+import 'package:metia/data/user/user_library.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 
-class LoginProvider extends ChangeNotifier {
+class UserProvider extends ChangeNotifier {
   bool hasNextPage = true;
   bool _isLoggedIn = false;
   Profile _user = Profile(
@@ -27,8 +28,7 @@ class LoginProvider extends ChangeNotifier {
         "https://s4.anilist.co/file/anilistcdn/user/avatar/large/default.png",
     bannerImage: "",
     id: 0,
-    userStatus: [],
-    userLibrary: [],
+    userLibrary: UserLibrary(library: []),
     statistics: Statistics(),
   );
 
@@ -39,7 +39,7 @@ class LoginProvider extends ChangeNotifier {
   Profile get user => _user;
   List<UserActivity> get userActivities => _user.userActivityPage.activities;
 
-  LoginProvider() {
+  UserProvider() {
     _initializeLoginState();
   }
 
@@ -62,7 +62,6 @@ class LoginProvider extends ChangeNotifier {
       _user.userActivityPage.activities.addAll(newPage.activities);
       notifyListeners();
     } catch (e) {
-      debugPrint(e.toString());
     } finally {
       _isLoadingMoreActivities = false;
     }
@@ -70,10 +69,14 @@ class LoginProvider extends ChangeNotifier {
 
   Future<void> _initializeLoginState() async {
     String authKey = await _getAuthKey();
+
     _isLoggedIn = authKey != "empty";
+
     if (_isLoggedIn) {
-      await _getUser();
+      notifyListeners();
+      await _getUserData();
     }
+
     notifyListeners();
   }
 
@@ -83,63 +86,159 @@ class LoginProvider extends ChangeNotifier {
 
   void logIn(String authKey) async {
     await UserData.saveAuthKey(authKey);
-    await _getUser();
+    await _getUserData();
     _isLoggedIn = true;
     notifyListeners();
   }
 
   Future<void> reloadUserData() async {
-    await _getUser();
+    await _getUserData();
     notifyListeners();
   }
 
-  Future<void> _getUser() async {
+  Future<void> _getUserData() async {
     String authKey = await _getAuthKey();
-
     const String url = 'https://graphql.anilist.co';
-    final Map<String, dynamic> body = {
-      'query': '''
-        query {
-          Viewer {
-            id
-            name
-            avatar {
-              large
-            }
-            bannerImage
-            statistics {
-              anime {
-                count
-                episodesWatched
-                minutesWatched
-              }
-            }
+
+    // Step 1: Query Viewer for user info + ID
+    const String viewerQuery = '''
+    query {
+      Viewer {
+        id
+        name
+        avatar {
+          large
+        }
+        bannerImage
+        statistics {
+          anime {
+            count
+            episodesWatched
+            minutesWatched
           }
         }
-    ''',
-    };
+      }
+    }
+  ''';
 
-    final response = await http.post(
+    final viewerResponse = await http.post(
       Uri.parse(url),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $authKey',
+        'Accept': 'application/json',
       },
-      body: jsonEncode(body),
+      body: jsonEncode({'query': viewerQuery}),
     );
 
-    final Map<String, dynamic> data = jsonDecode(response.body);
-    var viewer = data['data']['Viewer'];
-    ActivityPage activityPage = await _fetchUserActivities(viewer["id"], 1, 20);
+    final Map<String, dynamic> viewerData = jsonDecode(viewerResponse.body);
 
+    if (viewerData['errors'] != null) {
+      // handle error, e.g. throw or return early
+      print('Error fetching viewer: ${viewerData['errors']}');
+      return;
+    }
+
+    final viewer = viewerData['data']['Viewer'];
+    final int userId = viewer['id'];
+
+    // Step 2: Query MediaListCollection with userId
+    const String mediaListQuery = '''
+    query (\$type: MediaType!, \$userId: Int!) {
+      MediaListCollection(type: \$type, userId: \$userId) {
+        lists {
+          name
+          entries {
+            id
+            progress
+            status
+            media {
+              id
+              type
+              status(version: 2)
+              isAdult
+              bannerImage
+              description
+              genres
+              title {
+                english
+                romaji
+                native
+              }
+              episodes
+              averageScore
+              season
+              seasonYear
+              coverImage {
+                large
+                extraLarge
+                medium
+                color
+              }
+              duration
+              nextAiringEpisode {
+                airingAt
+                episode
+              }
+            }
+          }
+        }
+      }
+    }
+  ''';
+
+    final mediaListResponse = await http.post(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $authKey',
+        'Accept': 'application/json',
+      },
+      body: jsonEncode({
+        'query': mediaListQuery,
+        'variables': {'type': 'ANIME', 'userId': userId},
+      }),
+    );
+
+    final Map<String, dynamic> mediaListData = jsonDecode(
+      mediaListResponse.body,
+    );
+
+    if (mediaListData['errors'] != null) {
+      print('Error fetching media list: ${mediaListData['errors']}');
+      return;
+    }
+
+    final mediaListGroups =
+        mediaListData['data']['MediaListCollection']['lists'] as List;
+
+    // Parse media list groups
+    List<MediaListGroup> parsedGroups = mediaListGroups.map((group) {
+      return MediaListGroup(
+        name: group['name'],
+        entries: (group['entries'] as List).map((entry) {
+          final mediaJson = entry['media'];
+          return MediaListEntry(
+            id: entry['id'],
+            progress: entry['progress'],
+            status: entry['status'],
+            media: Media.fromJson(mediaJson),
+          );
+        }).toList(),
+      );
+    }).toList();
+
+    // Fetch user activities as before
+    ActivityPage activityPage = await _fetchUserActivities(userId, 1, 20);
+
+    // Assign your Profile object
     _user = Profile(
       name: viewer["name"],
       avatarLink: viewer["avatar"]["large"],
       bannerImage: viewer["bannerImage"] ?? "null",
-      id: viewer["id"],
-      userStatus: [],
-      userLibrary: [],
+      id: userId,
       statistics: Statistics.fromJson(viewer["statistics"]["anime"]),
+      userLibrary: UserLibrary(library: parsedGroups),
       userActivityPage: activityPage,
     );
   }
@@ -175,14 +274,27 @@ class LoginProvider extends ChangeNotifier {
               status(version: 2)
               isAdult
               bannerImage
+              description
+              genres
               title {
                 english
                 romaji
                 native
               }
+              episodes
+              averageScore
+              season
+              seasonYear
               coverImage {
                 large
+                extraLarge
+                medium
                 color
+              }
+              duration
+              nextAiringEpisode {
+                airingAt
+                episode
               }
             }
           }

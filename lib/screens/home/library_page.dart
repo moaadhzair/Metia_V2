@@ -12,8 +12,8 @@ class LibraryPage extends StatefulWidget {
 class _LibraryPageState extends State<LibraryPage> {
   @override
   Widget build(BuildContext context) {
-    bool isLoggedIn = Provider.of<LoginProvider>(context).isLoggedIn;
-    ; // Replace with actual login check logic
+    bool isLoggedIn = Provider.of<UserProvider>(context).isLoggedIn;
+    
     return Scaffold(
       appBar: AppBar(title: const Text('Library')),
       body: isLoggedIn

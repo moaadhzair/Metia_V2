@@ -1,14 +1,15 @@
 // profile.dart
 
+import 'package:flutter/material.dart';
 import 'package:metia/anilist/anime.dart';
+import 'package:metia/data/user/user_library.dart';
 
-class Profile {
+class Profile extends ChangeNotifier{
   String name;
   String avatarLink;
   String bannerImage;
   int id;
-  List<dynamic> userStatus;
-  List<dynamic> userLibrary;
+  UserLibrary userLibrary;
   Statistics statistics;
   ActivityPage userActivityPage; // Now stores ActivityPage instead of List
 
@@ -17,7 +18,6 @@ class Profile {
     required this.avatarLink,
     required this.bannerImage,
     required this.id,
-    required this.userStatus,
     required this.userLibrary,
     required this.statistics,
     required this.userActivityPage,
@@ -29,7 +29,6 @@ class Profile {
       avatarLink: json['avatarLink'] ?? "",
       bannerImage: json['bannerImage'] ?? "",
       id: json['id'] ?? 0,
-      userStatus: json['userStatus'] ?? [],
       userLibrary: json['userLibrary'] ?? [],
       statistics: Statistics.fromJson(json['statistics']),
       userActivityPage: ActivityPage.fromJson({
