@@ -263,7 +263,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  _buildActivityTile(UserActivity activity) {
+  Widget _buildActivityTile(UserActivity activity) {
     DateTime createdDate = DateTime.fromMillisecondsSinceEpoch(
       activity.createdAt * 1000,
     );
@@ -281,6 +281,7 @@ class _ProfilePageState extends State<ProfilePage> {
     }
 
     return Card(
+      clipBehavior: Clip.antiAlias,
       child: Row(
         children: [
           CachedNetworkImage(
@@ -297,62 +298,65 @@ class _ProfilePageState extends State<ProfilePage> {
           Expanded(
             child: SizedBox(
               height: 100,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  activity.media.bannerImage != null
-                      ? CachedNetworkImage(
-                          imageUrl: activity.media.bannerImage!,
-                          height: 100,
-                          fit: BoxFit.cover,
-                          placeholder: (context, url) =>
-                              Container(height: 100, color: Colors.grey[300]),
-                          errorWidget: (context, url, error) =>
-                              Container(height: 100, color: Colors.grey),
-                        )
-                      : Container(height: 100, color: activity.media.color),
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.transparent.withAlpha(50),
-                          Theme.of(
-                            context,
-                          ).scaffoldBackgroundColor.withAlpha(220),
+              child: AspectRatio(
+                aspectRatio: 1900 / 400,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    activity.media.bannerImage != null
+                        ? CachedNetworkImage(
+                            imageUrl: activity.media.bannerImage!,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) =>
+                                Container(color: Colors.grey[300]),
+                            errorWidget: (context, url, error) =>
+                                Container(color: Colors.grey),
+                          )
+                        : Container(color: activity.media.color),
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.transparent.withAlpha(50),
+                            Theme.of(
+                              context,
+                            ).scaffoldBackgroundColor.withAlpha(220),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Text(
+                            activity.status == "watched episode"
+                                ? "Watched episode ${activity.progress} of ${activity.media.title.english ?? activity.media.title.romaji ?? activity.media.title.native}"
+                                : "${activity.status[0].toUpperCase()}${activity.status.substring(1)} ${activity.media.title.english ?? activity.media.title.romaji ?? activity.media.title.native}",
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              color: ColorScheme.fromSeed(
+                                seedColor:
+                                    activity.media.color ?? Colors.blue,
+                              ).onInverseSurface,
+                            ),
+                          ),
+                          Text(
+                            time,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w500,
+                              color: Colors.orange,
+                            ),
+                          ),
                         ],
                       ),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Text(
-                          activity.status == "watched episode"
-                              ? "Watched episode ${activity.progress} of ${activity.media.title.english ?? activity.media.title.romaji ?? activity.media.title.native}"
-                              : "${activity.status[0].toUpperCase()}${activity.status.substring(1)} ${activity.media.title.english ?? activity.media.title.romaji ?? activity.media.title.native}",
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            color: ColorScheme.fromSeed(
-                              seedColor: activity.media.color ?? Colors.blue,
-                            ).onInverseSurface,
-                          ),
-                        ),
-                        Text(
-                          time,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            color: Colors.orange,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

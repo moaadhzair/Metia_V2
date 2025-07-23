@@ -23,6 +23,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => UserProvider()),
       ],
       child: MaterialApp(
+        //showPerformanceOverlay: true,
         debugShowCheckedModeBanner: false,
         title: 'Flutter Demo',
         theme: ThemeData(colorScheme: MaterialTheme.darkHighContrastScheme()),

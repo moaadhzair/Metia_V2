@@ -7,6 +7,7 @@ import 'package:metia/data/user/profile.dart';
 import 'package:metia/data/user/user_data.dart';
 import 'package:metia/data/user/user_library.dart';
 import 'package:url_launcher/url_launcher.dart';
+// ignore: depend_on_referenced_packages
 import 'package:http/http.dart' as http;
 
 class UserProvider extends ChangeNotifier {
@@ -62,6 +63,7 @@ class UserProvider extends ChangeNotifier {
       _user.userActivityPage.activities.addAll(newPage.activities);
       notifyListeners();
     } catch (e) {
+      debugPrint(e.toString());
     } finally {
       _isLoadingMoreActivities = false;
     }
@@ -135,7 +137,7 @@ class UserProvider extends ChangeNotifier {
 
     if (viewerData['errors'] != null) {
       // handle error, e.g. throw or return early
-      print('Error fetching viewer: ${viewerData['errors']}');
+      debugPrint('Error fetching viewer: ${viewerData['errors']}');
       return;
     }
 
@@ -205,7 +207,7 @@ class UserProvider extends ChangeNotifier {
     );
 
     if (mediaListData['errors'] != null) {
-      print('Error fetching media list: ${mediaListData['errors']}');
+      debugPrint('Error fetching media list: ${mediaListData['errors']}');
       return;
     }
 
@@ -215,6 +217,7 @@ class UserProvider extends ChangeNotifier {
     // Parse media list groups
     List<MediaListGroup> parsedGroups = mediaListGroups.map((group) {
       return MediaListGroup(
+        isInteractive: false,
         name: group['name'],
         entries: (group['entries'] as List).map((entry) {
           final mediaJson = entry['media'];
@@ -227,6 +230,32 @@ class UserProvider extends ChangeNotifier {
         }).toList(),
       );
     }).toList();
+
+    // Extract "airing" entries
+    List<MediaListEntry> airingEntries = [];
+
+    for (final group in parsedGroups) {
+      if ([/*"Planning", */ "Watching"].contains(group.name)) {
+        for (final entry in group.entries) {
+          final media = entry.media;
+          final nextEp = media.nextAiringEpisode;
+
+          if (nextEp != null && nextEp.episode > entry.progress! + 1) {
+            airingEntries.add(entry);
+          }
+        }
+      }
+    }
+
+    // Add "airing" group to library
+    parsedGroups.insert(
+      0,
+      MediaListGroup(
+        name: "Airing",
+        entries: airingEntries,
+        isInteractive: false,
+      ),
+    );
 
     // Fetch user activities as before
     ActivityPage activityPage = await _fetchUserActivities(userId, 1, 20);
