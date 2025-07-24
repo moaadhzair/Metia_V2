@@ -1,3 +1,6 @@
+import 'dart:ui';
+
+import 'package:flutter/material.dart';
 import 'package:metia/anilist/anime.dart';
 import 'package:metia/data/user/profile.dart';
 
@@ -14,12 +17,20 @@ class MediaListGroup {
   final String name;
   final List<MediaListEntry> entries;
   final bool isInteractive;
+  final Color color;
 
-  MediaListGroup({required this.name, required this.entries, required this.isInteractive});
+  MediaListGroup({
+    required this.color,
+    required this.name,
+    required this.entries,
+    required this.isInteractive,
+  });
 
   factory MediaListGroup.fromJson(Map<String, dynamic> json) {
     return MediaListGroup(
-      isInteractive: true, // true by default cause it was passed in straigt from the graphql json code
+      color: json['name'] == "Watching" ? Colors.green : json['name'] == "Airing" ? Colors.orange : Colors.white,
+      isInteractive:
+          true, // true by default cause it was passed in straigt from the graphql json code
       name: json['name'],
       entries: (json['entries'] as List)
           .map((entry) => MediaListEntry.fromJson(entry))

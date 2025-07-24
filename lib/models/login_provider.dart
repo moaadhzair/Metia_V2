@@ -217,6 +217,11 @@ class UserProvider extends ChangeNotifier {
     // Parse media list groups
     List<MediaListGroup> parsedGroups = mediaListGroups.map((group) {
       return MediaListGroup(
+        color: group['name'] == "Watching"
+            ? Colors.green
+            : group['name'] == "Airing"
+            ? Colors.orange
+            : Colors.white,
         isInteractive: false,
         name: group['name'],
         entries: (group['entries'] as List).map((entry) {
@@ -251,11 +256,27 @@ class UserProvider extends ChangeNotifier {
     parsedGroups.insert(
       0,
       MediaListGroup(
+        color: Colors.orange,
         name: "Airing",
         entries: airingEntries,
         isInteractive: false,
       ),
     );
+
+    const desiredOrder = [
+      "Airing",
+      "Watching",
+      "Planning",
+      "Completed",
+      "Paused",
+      "Dropped",
+    ];
+
+    parsedGroups.sort((a, b) {
+      int indexA = desiredOrder.indexOf(a.name ?? "");
+      int indexB = desiredOrder.indexOf(b.name ?? "");
+      return indexA.compareTo(indexB);
+    });
 
     // Fetch user activities as before
     ActivityPage activityPage = await _fetchUserActivities(userId, 1, 20);

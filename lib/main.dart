@@ -3,6 +3,7 @@ import 'package:metia/colors/material_theme.dart';
 import 'package:metia/data/user/user_data.dart';
 import 'package:metia/models/login_provider.dart';
 import 'package:metia/screens/home_page.dart';
+import 'package:metia/screens/testing.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
@@ -27,7 +28,7 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'Flutter Demo',
         theme: ThemeData(colorScheme: MaterialTheme.darkHighContrastScheme()),
-        home: const HomePage(),
+        home: HomePage(),
       ),
     );
   }
