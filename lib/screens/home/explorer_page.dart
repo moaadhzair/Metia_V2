@@ -11,9 +11,9 @@ class _ExplorerPageState extends State<ExplorerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Explorer'),
-      ),
+      // appBar: AppBar(
+      //   title: const Text('Explorer'),
+      // ),
       body: const Center(child: Text('Explore content here')),
     );
   }

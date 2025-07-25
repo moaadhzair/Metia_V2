@@ -27,14 +27,29 @@ class MediaListGroup {
   });
 
   factory MediaListGroup.fromJson(Map<String, dynamic> json) {
-    return MediaListGroup(
-      color: json['name'] == "Watching" ? Colors.green : json['name'] == "Airing" ? Colors.orange : Colors.white,
-      isInteractive:
-          true, // true by default cause it was passed in straigt from the graphql json code
+    final group = MediaListGroup(
+      color: json['name'] == "Watching"
+          ? Colors.green
+          : json['name'] == "Airing"
+          ? Colors.orange
+          : Colors.white,
+      isInteractive: true,
       name: json['name'],
-      entries: (json['entries'] as List)
-          .map((entry) => MediaListEntry.fromJson(entry))
-          .toList(),
+      entries: [], // placeholder, will populate below
+    );
+
+    final parsedEntries = (json['entries'] as List).map((entryJson) {
+      final entry = MediaListEntry.fromJson(entryJson);
+      entry.setGroup(group);
+      return entry;
+    }).toList();
+
+    // Create a new group with proper entries assigned
+    return MediaListGroup(
+      color: group.color,
+      name: group.name,
+      isInteractive: group.isInteractive,
+      entries: parsedEntries,
     );
   }
 }
@@ -44,6 +59,10 @@ class MediaListEntry {
   final int? progress;
   final String status;
   final Media media;
+
+  // Back-reference to the parent group
+  MediaListGroup? _group;
+  MediaListGroup? getGroup() => _group;
 
   MediaListEntry({
     required this.id,
@@ -59,5 +78,10 @@ class MediaListEntry {
       status: json['status'],
       media: Media.fromJson(json['media']),
     );
+  }
+
+  // Internal setter for the group (used only during list construction)
+  void setGroup(MediaListGroup group) {
+    _group = group;
   }
 }

@@ -5,6 +5,7 @@ import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:metia/models/login_provider.dart';
+import 'package:metia/models/theme_provider.dart';
 import 'package:metia/screens/home/explorer_page.dart';
 import 'package:metia/screens/home/library_page.dart';
 import 'package:metia/screens/home/profile_page.dart';
@@ -22,11 +23,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late final TabController _tabController;
   StreamSubscription<Uri>? _linkSubscription;
 
-  final List<Widget> _tabs = [
-    LibraryPage(),
-    ExplorerPage(),
-    ProfilePage(),
-  ];
+  final List<Widget> _tabs = [LibraryPage(), ExplorerPage(), ProfilePage()];
 
   @override
   void initState() {
@@ -65,8 +62,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         if (response.statusCode == 200) {
           final responseData = jsonDecode(response.body);
           if (mounted) {
-            Provider.of<UserProvider>(context, listen: false)
-                .logIn(responseData['access_token'].toString());
+            Provider.of<UserProvider>(
+              context,
+              listen: false,
+            ).logIn(responseData['access_token'].toString());
           }
         } else {
           throw Exception('Failed to retrieve access token: ${response.body}');
@@ -81,6 +80,100 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        surfaceTintColor: Colors.transparent,
+        backgroundColor: Colors.transparent,
+        actions: [
+          if (Provider.of<UserProvider>(context).isLoggedIn)
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert),
+              onSelected: (value) {
+                switch (value) {
+                  case 'logout':
+                    Provider.of<UserProvider>(context, listen: false).logOut();
+                    break;
+                  case 'refresh':
+                    break;
+                  case 'createList':
+                    break;
+                  case 'changeSource':
+                    break;
+                  case 'revertTheme':
+                    bool isDarkMode = Provider.of<ThemeProvider>(
+                      context,
+                      listen: false
+                    ).isDarkMode;
+                    if (isDarkMode) {
+                      Provider.of<ThemeProvider>(
+                        context,
+                        listen: false,
+                      ).setLightMode();
+                    } else {
+                      Provider.of<ThemeProvider>(
+                        context,
+                        listen: false,
+                      ).setDarkMode();
+                    }
+                }
+              },
+              itemBuilder: (BuildContext context) => [
+                const PopupMenuItem<String>(
+                  enabled: false,
+                  height: 36,
+                  child: Text('Library'),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'refresh',
+                  height: 36,
+                  child: Text('Refresh'),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'createList',
+                  height: 36,
+                  child: Text('Create a New List'),
+                ),
+
+                const PopupMenuItem<String>(
+                  height: 36,
+                  enabled: false,
+                  child: Text('Explorer'),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'changeSource',
+                  height: 36,
+                  child: Text('Change Source'),
+                ),
+
+                const PopupMenuItem<String>(
+                  height: 36,
+                  enabled: false,
+                  child: Text('Profile', textAlign: TextAlign.end),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'logout',
+                  height: 36,
+                  child: Text('Log Out'),
+                ),
+                const PopupMenuItem<String>(
+                  height: 36,
+                  enabled: false,
+                  child: Text('General', textAlign: TextAlign.end),
+                ),
+                PopupMenuItem<String>(
+                  value: 'revertTheme',
+                  height: 36,
+                  child: Text(
+                    'Swith to ${Provider.of<ThemeProvider>(context, listen: false).isDarkMode ? "Light" : "Dark"} Mode',
+                  ),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'Settings',
+                  height: 36,
+                  child: Text('Settings'),
+                ),
+              ],
+            ),
+        ],
+
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
           child: ClipRRect(
@@ -94,10 +187,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         ),
         title: const Text('Metia'),
       ),
-      body: IndexedStack(
-        index: _tabController.index,
-        children: _tabs,
-      ),
+      body: IndexedStack(index: _tabController.index, children: _tabs),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _tabController.index,
         onTap: (index) {

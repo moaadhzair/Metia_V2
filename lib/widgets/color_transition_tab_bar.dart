@@ -80,6 +80,7 @@ class _ColorTransitionTabBarState extends State<ColorTransitionTabBar> {
                 label,
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
+                  fontSize: 16,
                   color: widget.tabColors[index],
                 ),
               ),

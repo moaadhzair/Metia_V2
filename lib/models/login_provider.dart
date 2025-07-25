@@ -216,7 +216,8 @@ class UserProvider extends ChangeNotifier {
 
     // Parse media list groups
     List<MediaListGroup> parsedGroups = mediaListGroups.map((group) {
-      return MediaListGroup(
+      // Step 1: Create the MediaListGroup first with empty entries
+      final mediaListGroup = MediaListGroup(
         color: group['name'] == "Watching"
             ? Colors.green
             : group['name'] == "Airing"
@@ -224,44 +225,57 @@ class UserProvider extends ChangeNotifier {
             : Colors.white,
         isInteractive: false,
         name: group['name'],
-        entries: (group['entries'] as List).map((entry) {
-          final mediaJson = entry['media'];
-          return MediaListEntry(
-            id: entry['id'],
-            progress: entry['progress'],
-            status: entry['status'],
-            media: Media.fromJson(mediaJson),
-          );
-        }).toList(),
+        entries: [], // will fill this next
       );
+
+      // Step 2: Fill in the entries and set the group reference
+      List<MediaListEntry> entries = (group['entries'] as List).map((entry) {
+        final mediaJson = entry['media'];
+        var mediaListEntry = MediaListEntry(
+          id: entry['id'],
+          progress: entry['progress'],
+          status: entry['status'],
+          media: Media.fromJson(mediaJson),
+        );
+
+        // Use your setGroup() method
+        mediaListEntry.setGroup(mediaListGroup);
+
+        return mediaListEntry;
+      }).toList();
+
+      // Step 3: Add entries to the group
+      mediaListGroup.entries.addAll(entries);
+
+      return mediaListGroup; // ✅ return the filled group
     }).toList();
 
-    // Extract "airing" entries
-    List<MediaListEntry> airingEntries = [];
+    // Step 1: Create the Airing group early (empty for now)
+    final airingGroup = MediaListGroup(
+      color: Colors.orange,
+      name: "Airing",
+      entries: [],
+      isInteractive: false,
+    );
 
+    // Step 2: Extract "airing" entries and reassign their group
     for (final group in parsedGroups) {
-      if ([/*"Planning", */ "Watching"].contains(group.name)) {
+      if (["Planning", "Watching"].contains(group.name)) {
         for (final entry in group.entries) {
           final media = entry.media;
           final nextEp = media.nextAiringEpisode;
 
-          if (nextEp != null && nextEp.episode > entry.progress! + 1) {
-            airingEntries.add(entry);
+          if (nextEp != null && nextEp.episode > (entry.progress ?? 0) + 1) {
+            // Reassign entry to airing group
+            entry.setGroup(airingGroup);
+            airingGroup.entries.add(entry);
           }
         }
       }
     }
 
-    // Add "airing" group to library
-    parsedGroups.insert(
-      0,
-      MediaListGroup(
-        color: Colors.orange,
-        name: "Airing",
-        entries: airingEntries,
-        isInteractive: false,
-      ),
-    );
+    // Step 3: Insert the airing group at the beginning
+    parsedGroups.insert(0, airingGroup);
 
     const desiredOrder = [
       "Airing",

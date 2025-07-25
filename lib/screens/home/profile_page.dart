@@ -46,7 +46,6 @@ class _ProfilePageState extends State<ProfilePage> {
           }
         }
       });
-    super.initState();
   }
 
   @override
@@ -58,31 +57,31 @@ class _ProfilePageState extends State<ProfilePage> {
           ? _buildProfile(context) // <- pass context
           : CustomScrollView(
               slivers: [
-                SliverAppBar(
-                  pinned: false,
-                  floating: false,
-                  snap: false,
-                  title: const Text('Profile'),
-                  actions: [
-                    PopupMenuButton<String>(
-                      icon: const Icon(Icons.more_vert),
-                      onSelected: (value) {
-                        if (value == 'logout') {
-                          Provider.of<UserProvider>(
-                            context,
-                            listen: false,
-                          ).logOut();
-                        }
-                      },
-                      itemBuilder: (BuildContext context) => const [
-                        PopupMenuItem<String>(
-                          value: 'logout',
-                          child: Text('Log Out'),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                // SliverAppBar(
+                //   pinned: false,
+                //   floating: false,
+                //   snap: false,
+                //   title: const Text('Profile'),
+                //   actions: [
+                //     PopupMenuButton<String>(
+                //       icon: const Icon(Icons.more_vert),
+                //       onSelected: (value) {
+                //         if (value == 'logout') {
+                //           Provider.of<UserProvider>(
+                //             context,
+                //             listen: false,
+                //           ).logOut();
+                //         }
+                //       },
+                //       itemBuilder: (BuildContext context) => const [
+                //         PopupMenuItem<String>(
+                //           value: 'logout',
+                //           child: Text('Log Out'),
+                //         ),
+                //       ],
+                //     ),
+                //   ],
+                // ),
                 SliverFillRemaining(
                   hasScrollBody: false,
                   child: Center(
@@ -123,28 +122,28 @@ class _ProfilePageState extends State<ProfilePage> {
 
         slivers: [
           //main appbar
-          SliverAppBar(
-            pinned: false,
-            floating: true,
-            snap: false,
-            title: const Text('Profile'),
-            actions: [
-              PopupMenuButton<String>(
-                icon: const Icon(Icons.more_vert),
-                onSelected: (value) {
-                  if (value == 'logout') {
-                    Provider.of<UserProvider>(context, listen: false).logOut();
-                  }
-                },
-                itemBuilder: (BuildContext context) => const [
-                  PopupMenuItem<String>(
-                    value: 'logout',
-                    child: Text('Log Out'),
-                  ),
-                ],
-              ),
-            ],
-          ),
+          // SliverAppBar(
+          //   pinned: false,
+          //   floating: true,
+          //   snap: false,
+          //   title: const Text('Profile'),
+          //   actions: [
+          //     PopupMenuButton<String>(
+          //       icon: const Icon(Icons.more_vert),
+          //       onSelected: (value) {
+          //         if (value == 'logout') {
+          //           Provider.of<UserProvider>(context, listen: false).logOut();
+          //         }
+          //       },
+          //       itemBuilder: (BuildContext context) => const [
+          //         PopupMenuItem<String>(
+          //           value: 'logout',
+          //           child: Text('Log Out'),
+          //         ),
+          //       ],
+          //     ),
+          //   ],
+          // ),
           //user's avatar and banner
           SliverToBoxAdapter(
             child: Stack(
@@ -320,9 +319,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           end: Alignment.bottomCenter,
                           colors: [
                             Colors.transparent.withAlpha(50),
-                            Theme.of(
-                              context,
-                            ).scaffoldBackgroundColor.withAlpha(220),
+                            Colors.black.withAlpha(100),
                           ],
                         ),
                       ),
@@ -340,8 +337,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             style: TextStyle(
                               fontWeight: FontWeight.w500,
                               color: ColorScheme.fromSeed(
-                                seedColor:
-                                    activity.media.color ?? Colors.blue,
+                                seedColor: activity.media.color ?? Colors.blue,
                               ).onInverseSurface,
                             ),
                           ),

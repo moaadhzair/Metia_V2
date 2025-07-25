@@ -27,8 +27,10 @@ class AnimeCard extends StatefulWidget {
   final int index;
   final MediaListEntry anime;
   final VoidCallback? onLibraryChanged;
+  final BuildContext context;
 
   const AnimeCard({
+    required this.context,
     super.key,
     required this.tabName,
     required this.index,
@@ -56,17 +58,17 @@ class _AnimeCardState extends State<AnimeCard> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Align(
-          alignment: Alignment.center,
-          child: SizedBox(
-            width: 135,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(4, 4, 4, 0),
+    return Card(
+      child: Stack(
+        children: [
+          Align(
+            alignment: Alignment.center,
+            child: SizedBox(
+              width: 135,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  //cover
                   SizedBox(
                     height: 183,
                     width: 135,
@@ -94,14 +96,16 @@ class _AnimeCardState extends State<AnimeCard> {
                     ),
                   ),
                   const SizedBox(height: 5),
+                  //title
                   Expanded(
                     child: Center(
                       child: Text(
                         title,
                         overflow: TextOverflow.ellipsis,
                         maxLines: 2,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          //color: Colors.white,
+                          color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.w600,
                           fontSize: 16.5,
                         ),
@@ -110,72 +114,77 @@ class _AnimeCardState extends State<AnimeCard> {
                     ),
                   ),
                   const SizedBox(height: 2),
+                  //bottom text
                   _buildBottomText(),
                 ],
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   _buildBottomText() {
+    MediaListGroup? mediaListGroup = widget.anime.getGroup();
     bool isNewEpisodeTab =
         widget.anime.media.nextAiringEpisode != null &&
-        widget.tabName.startsWith("Airing");
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Text(
+        mediaListGroup?.name == "Airing";
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 5),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Text(
+            isNewEpisodeTab
+                ? "Airing"
+                : "${widget.anime.progress}/${widget.anime.media.episodes ?? "?"}",
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
           isNewEpisodeTab
-              ? "Airing"
-              : "${widget.anime.progress}/${widget.anime.media.episodes ?? "?"}",
-          //style: const TextStyle(color: MyColors.appbarTextColor, fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-        isNewEpisodeTab
-            ? Row(
-                spacing: 2,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    "${widget.anime.media.nextAiringEpisode!.episode - 1} Ep",
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: Colors.orange,
+              ? Row(
+                  spacing: 2,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      "${widget.anime.media.nextAiringEpisode!.episode - 1} Ep",
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: Colors.orange,
+                      ),
                     ),
-                  ),
-                  const Icon(
-                    Icons.notifications_active,
-                    color: Colors.orange,
-                    size: 18,
-                  ),
-                ],
-              )
-            : Row(
-                spacing: 2,
-                children: [
-                  Text(
-                    widget.anime.media.averageScore == 0
-                        ? "0.0"
-                        : "0.0", //Tools.insertAt(widget.data["media"]["averageScore"].toString(), ".", 1),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                    const Icon(
+                      Icons.notifications_active,
                       color: Colors.orange,
+                      size: 18,
                     ),
-                  ),
-                  const Icon(Icons.star, color: Colors.orange, size: 18),
-                ],
-              ),
-      ],
+                  ],
+                )
+              : Row(
+                  spacing: 2,
+                  children: [
+                    Text(
+                      widget.anime.media.averageScore == 0
+                          ? "0.0"
+                          : "0.0", //Tools.insertAt(widget.data["media"]["averageScore"].toString(), ".", 1),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: Colors.orange,
+                      ),
+                    ),
+                    const Icon(Icons.star, color: Colors.orange, size: 18),
+                  ],
+                ),
+        ],
+      ),
     );
   }
 
   _buildEpAiring(NextAiringEpisode nextAiring) {
-   
     final int airingAt = nextAiring.airingAt;
     final int episode = nextAiring.episode;
     final Duration diff = DateTime.fromMillisecondsSinceEpoch(
