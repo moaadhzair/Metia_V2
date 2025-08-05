@@ -252,7 +252,7 @@ class UserProvider extends ChangeNotifier {
 
 
         if(466921483 == entry['id']){
-          debugPrint(entry['id']);
+          debugPrint(entry['id'].toString());
       }
         final mediaJson = entry['media'];
         var mediaListEntry = MediaListEntry(
@@ -334,7 +334,7 @@ class UserProvider extends ChangeNotifier {
 
     final custom = customLists.map(
       (name) => {
-        'name': name[0].toUpperCase() + name.substring(1),
+        'name': name,
         'isCustom': true,
       },
     );

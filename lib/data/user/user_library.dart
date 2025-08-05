@@ -172,9 +172,7 @@ class MediaListGroup {
 
     final variables = {
       'mediaId': entry.media.id,
-      'customLists': [
-        customList
-      ],
+      'customLists': [customList],
       'hiddenFromStatusLists': true,
     };
 
@@ -191,7 +189,8 @@ class MediaListGroup {
       debugPrint('Failed to add to custom list: ${response.body}');
     }
   }
-// nice
+
+  // nice
   Future<void> addToStatusList(
     BuildContext context,
     int mediaId,
@@ -299,10 +298,18 @@ class MediaListGroup {
     } else {
       if (entry.getGroup()!.isCustom) {
         debugPrint("Send the entry from not custom to status");
-        await addToStatusList(context, entry.media.id, listName);
+        await addToStatusList(
+          context,
+          entry.media.id,
+          listName == "Watching" ? "CURRENT" : listName,
+        );
       } else {
         debugPrint("Send the entry from not status to status");
-        await addToStatusList(context, entry.media.id, listName);
+        await addToStatusList(
+          context,
+          entry.media.id,
+          listName == "Watching" ? "CURRENT" : listName,
+        );
       }
     }
   }

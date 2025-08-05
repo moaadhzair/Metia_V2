@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:metia/anilist/anime.dart';
@@ -57,31 +60,6 @@ class _ProfilePageState extends State<ProfilePage> {
           ? _buildProfile(context) // <- pass context
           : CustomScrollView(
               slivers: [
-                // SliverAppBar(
-                //   pinned: false,
-                //   floating: false,
-                //   snap: false,
-                //   title: const Text('Profile'),
-                //   actions: [
-                //     PopupMenuButton<String>(
-                //       icon: const Icon(Icons.more_vert),
-                //       onSelected: (value) {
-                //         if (value == 'logout') {
-                //           Provider.of<UserProvider>(
-                //             context,
-                //             listen: false,
-                //           ).logOut();
-                //         }
-                //       },
-                //       itemBuilder: (BuildContext context) => const [
-                //         PopupMenuItem<String>(
-                //           value: 'logout',
-                //           child: Text('Log Out'),
-                //         ),
-                //       ],
-                //     ),
-                //   ],
-                // ),
                 SliverFillRemaining(
                   hasScrollBody: false,
                   child: Center(
@@ -108,157 +86,148 @@ class _ProfilePageState extends State<ProfilePage> {
     Profile user = Provider.of<UserProvider>(context).user;
     bool hasBanner = user.bannerImage != "null" && user.bannerImage != "";
 
-    return RefreshIndicator.adaptive(
-      triggerMode: RefreshIndicatorTriggerMode.onEdge,
-      onRefresh: () {
-        return Provider.of<UserProvider>(
-          context,
-          listen: false,
-        ).reloadUserData();
-      },
+    return Platform.isAndroid
+        ? RefreshIndicator(
+            triggerMode: RefreshIndicatorTriggerMode.onEdge,
+            onRefresh: () {
+              return Provider.of<UserProvider>(
+                context,
+                listen: false,
+              ).reloadUserData();
+            },
 
-      child: CustomScrollView(
-        controller: _scrollController,
+            child: _buildProfileBody(hasBanner, user, false),
+          )
+        : _buildProfileBody(hasBanner, user, true);
+  }
 
-        slivers: [
-          //main appbar
-          // SliverAppBar(
-          //   pinned: false,
-          //   floating: true,
-          //   snap: false,
-          //   title: const Text('Profile'),
-          //   actions: [
-          //     PopupMenuButton<String>(
-          //       icon: const Icon(Icons.more_vert),
-          //       onSelected: (value) {
-          //         if (value == 'logout') {
-          //           Provider.of<UserProvider>(context, listen: false).logOut();
-          //         }
-          //       },
-          //       itemBuilder: (BuildContext context) => const [
-          //         PopupMenuItem<String>(
-          //           value: 'logout',
-          //           child: Text('Log Out'),
-          //         ),
-          //       ],
-          //     ),
-          //   ],
-          // ),
-          //user's avatar and banner
-          SliverToBoxAdapter(
-            child: Stack(
-              children: [
-                // Banner Background
-                SizedBox(
-                  height: 125,
-                  width: double.infinity,
-                  child: hasBanner
-                      ? CachedNetworkImage(
-                          imageUrl: user.bannerImage,
-                          fit: BoxFit.cover,
-                        )
-                      : Container(color: Colors.deepPurple),
-                ),
+  Widget _buildProfileBody(hasBanner, user, isApple) {
+    return CustomScrollView(
+      controller: _scrollController,
+      slivers: [
+        if (isApple)
+          CupertinoSliverRefreshControl(
 
-                // Gradient Overlay
-                Container(
-                  height: 125,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        Theme.of(context).scaffoldBackgroundColor,
-                      ],
-                    ),
-                  ),
-                ),
+            onRefresh: () async {
+              await Provider.of<UserProvider>(
+                context,
+                listen: false,
+              ).reloadUserData();
+            },
+          ),
+        SliverToBoxAdapter(
+          child: Stack(
+            children: [
+              // Banner Background
+              SizedBox(
+                height: 125,
+                width: double.infinity,
+                child: hasBanner
+                    ? CachedNetworkImage(
+                        imageUrl: user.bannerImage,
+                        fit: BoxFit.cover,
+                      )
+                    : Container(color: Colors.deepPurple),
+              ),
 
-                // Avatar + Name Row
-                Positioned(
-                  bottom: 16,
-                  left: 16,
-                  right: 16,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: CachedNetworkImage(
-                          imageUrl: user.avatarLink,
-                          height: 100,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Text(
-                          user.name,
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                      ),
+              // Gradient Overlay
+              Container(
+                height: 125,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      Theme.of(context).scaffoldBackgroundColor,
                     ],
                   ),
                 ),
-              ],
-            ),
-          ),
-          //user's statistics
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: SizedBox(
-                height: 100,
-                child: Center(
-                  child: ListView.separated(
-                    shrinkWrap: true,
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(width: 5),
-                    itemCount: user.statistics.stats.length,
-                    scrollDirection: Axis.horizontal,
-                    itemBuilder: (context, index) {
-                      final entry = user.statistics.stats[index].entries.first;
-                      return _buildDeatileTile(entry.key, entry.value);
-                    },
-                  ),
+              ),
+
+              // Avatar + Name Row
+              Positioned(
+                bottom: 16,
+                left: 16,
+                right: 16,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: CachedNetworkImage(
+                        imageUrl: user.avatarLink,
+                        height: 100,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Text(
+                        user.name,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
+            ],
           ),
-          //user's activity
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate((context, index) {
-                final activity = user.userActivityPage.activities[index];
-                return Column(
-                  children: [
-                    if (index != 0 ||
-                        index != user.userActivityPage.activities.length)
-                      const SizedBox(height: 2),
-                    _buildActivityTile(activity),
-                  ],
-                );
-              }, childCount: user.userActivityPage.activities.length),
-            ),
-          ),
-          SliverToBoxAdapter(
+        ),
+        //user's statistics
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
             child: SizedBox(
-              width: double.infinity,
               height: 100,
               child: Center(
-                child: Text(
-                  Provider.of<UserProvider>(context).hasNextPage
-                      ? "Loading more..."
-                      : "No more activities.",
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(width: 5),
+                  itemCount: user.statistics.stats.length,
+                  scrollDirection: Axis.horizontal,
+                  itemBuilder: (context, index) {
+                    final entry = user.statistics.stats[index].entries.first;
+                    return _buildDeatileTile(entry.key, entry.value);
+                  },
                 ),
               ),
             ),
           ),
-        ],
-      ),
+        ),
+        //user's activity
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate((context, index) {
+              final activity = user.userActivityPage.activities[index];
+              return Column(
+                children: [
+                  if (index != 0 ||
+                      index != user.userActivityPage.activities.length)
+                    const SizedBox(height: 2),
+                  _buildActivityTile(activity),
+                ],
+              );
+            }, childCount: user.userActivityPage.activities.length),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: SizedBox(
+            width: double.infinity,
+            height: 100,
+            child: Center(
+              child: Text(
+                Provider.of<UserProvider>(context).hasNextPage
+                    ? "Loading more..."
+                    : "No more activities.",
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

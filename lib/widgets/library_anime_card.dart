@@ -73,12 +73,6 @@ class _AnimeCardState extends State<AnimeCard> {
                       CupertinoContextMenuAction(
                         onPressed: () {
                           debugPrint("Watching $title");
-                          // widget.anime.getGroup()!.changeEntryStatus(
-                          //   context,
-                          //   widget.anime,
-                          //   "shiit",
-                          //   true,
-                          // );
                           Provider.of<UserProvider>(
                             context,
                             listen: false,
@@ -105,85 +99,7 @@ class _AnimeCardState extends State<AnimeCard> {
                           onPressed: () {
                             //TODO: change to another list
 
-                            showModalBottomSheet(
-                              context: context,
-                              builder: (context) {
-                                return ClipRRect(
-                                  borderRadius: const BorderRadius.only(
-                                    topLeft: Radius.circular(25),
-                                    topRight: Radius.circular(25),
-                                  ),
-                                  child: Scaffold(
-                                    body: Padding(
-                                      padding: const EdgeInsets.all(16.0),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            "Select the List:",
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w700,
-                                            ),
-                                          ),
-                                          SizedBox(height: 10),
-                                          Expanded(
-                                            child: ListView.separated(
-                                              itemBuilder: (context, index) {
-                                                //TODO: this should return a list of Media List Groups (custom one's too)
-                                                Map listDetails =
-                                                    Provider.of<UserProvider>(
-                                                      context,
-                                                    ).user.userLists[index];
-
-                                                return SizedBox(
-                                                  height: 50,
-                                                  child: Opacity(
-                                                    opacity:
-                                                        listDetails["name"] ==
-                                                            widget.anime
-                                                                .getGroup()!
-                                                                .name
-                                                        ? 0.5
-                                                        : 1,
-                                                    child: Card(
-
-                                                      child: Center(
-                                                        child: Text(
-                                                          listDetails["name"],
-                                                          style: TextStyle(
-                                                            fontSize: 16,
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                );
-                                              },
-                                              separatorBuilder:
-                                                  (context, index) =>
-                                                      SizedBox(height: 10),
-                                              itemCount:
-                                                  Provider.of<UserProvider>(
-                                                        context,
-                                                      )
-                                                      .user
-                                                      .userLists
-                                                      .length, // this should include , watching aplanning ........ and then the custom lists and not like this !!!!!
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              },
-                            );
-                            //Navigator.of(context).pop();
+                            _transferToAnotherList();
                           },
                         ),
                       // Remove from list
@@ -208,7 +124,8 @@ class _AnimeCardState extends State<AnimeCard> {
                     ],
                     builder: (context, animation) {
                       return GestureDetector(
-                        onTap: () {debugPrint("tapped on $widget");
+                        onTap: () {
+                          debugPrint("tapped on $widget");
                           widget.anime.status;
                         },
                         child: SizedBox(
@@ -331,6 +248,144 @@ class _AnimeCardState extends State<AnimeCard> {
                 ),
         ],
       ),
+    );
+  }
+
+  _transferToAnotherList() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        bool isLoading = false;
+
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(25),
+                topRight: Radius.circular(25),
+              ),
+              child: Scaffold(
+                body: Stack(
+                  children: [
+                    AbsorbPointer(
+                      absorbing: isLoading, // disables all taps
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const Text(
+                              "Select the List:",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Expanded(
+                              child: ListView.separated(
+                                itemBuilder: (context, index) {
+                                  Map listDetails = Provider.of<UserProvider>(
+                                    context,
+                                  ).user.userLists[index];
+
+                                  bool isCurrent =
+                                      listDetails["name"]
+                                          .toString()
+                                          .toLowerCase() ==
+                                      widget.anime
+                                          .getGroup()!
+                                          .name
+                                          .toLowerCase();
+
+                                  return SizedBox(
+                                    height: 50,
+                                    child: Opacity(
+                                      opacity: isCurrent ? 0.5 : 1,
+                                      child: ElevatedButton(
+                                        onPressed: isCurrent
+                                            ? null
+                                            : () async {
+                                                setModalState(
+                                                  () => isLoading = true,
+                                                );
+
+                                                await widget.anime
+                                                    .getGroup()!
+                                                    .changeEntryStatus(
+                                                      context,
+                                                      widget.anime,
+                                                      listDetails["name"],
+                                                      listDetails["isCustom"],
+                                                    );
+
+                                                await Provider.of<UserProvider>(
+                                                  context,
+                                                  listen: false,
+                                                ).reloadUserData();
+
+                                                if (context.mounted) {
+                                                  Navigator.of(
+                                                    context,
+                                                  ).pop(); // pop modal
+                                                  Navigator.of(
+                                                    context,
+                                                  ).pop(); // pop page
+                                                }
+                                              },
+                                        child: Stack(
+                                          children: [
+                                            Center(
+                                              child: Text(
+                                                listDetails["name"],
+                                                style: const TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                            if (isCurrent)
+                                              const Align(
+                                                alignment:
+                                                    Alignment.centerRight,
+                                                child: Icon(Icons.check),
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                                separatorBuilder: (context, index) =>
+                                    const SizedBox(height: 10),
+                                itemCount: Provider.of<UserProvider>(
+                                  context,
+                                ).user.userLists.length,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    // LOADING INDICATOR OVERLAY
+                    if (isLoading)
+                      Positioned.fill(
+                        child: Container(
+                          color: Colors.black.withOpacity(0.3),
+                          child: const Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
