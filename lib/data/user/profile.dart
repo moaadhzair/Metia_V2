@@ -11,6 +11,7 @@ class Profile extends ChangeNotifier{
   int id;
   UserLibrary userLibrary;
   Statistics statistics;
+  List<Map<String, dynamic>> userLists;
   ActivityPage userActivityPage; // Now stores ActivityPage instead of List
 
   Profile({
@@ -21,10 +22,12 @@ class Profile extends ChangeNotifier{
     required this.userLibrary,
     required this.statistics,
     required this.userActivityPage,
+    required this.userLists,
   });
 
   factory Profile.fromJson(Map<String, dynamic> json) {
     return Profile(
+      userLists: json['mediaListOptions']['animeList']['customLists'],
       name: json['name'] ?? "Unknown",
       avatarLink: json['avatarLink'] ?? "",
       bannerImage: json['bannerImage'] ?? "",

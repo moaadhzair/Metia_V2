@@ -21,73 +21,59 @@ class ColorTransitionTabBar extends StatefulWidget
 }
 
 class _ColorTransitionTabBarState extends State<ColorTransitionTabBar> {
-  late Color _previousColor;
-  late Color _currentColor;
-
-  @override
-  void dispose() {
-    // TODO: implement dispose
-    super.dispose();
-  }
-
-  @override
-  void didUpdateWidget(covariant ColorTransitionTabBar oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.controller.index != oldWidget.controller.index) {
-      _previousColor = _currentColor;
-      _currentColor = widget.tabColors[widget.controller.index];
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _currentColor = widget.tabColors[widget.controller.index];
-    _previousColor = _currentColor;
-
-    widget.controller.addListener(() {
-      if (!widget.controller.indexIsChanging) return;
-
-      final newColor = widget.tabColors[widget.controller.index];
-      setState(() {
-        _previousColor = _currentColor;
-        _currentColor = newColor;
-      });
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    return TweenAnimationBuilder<Color?>(
-      tween: ColorTween(begin: _previousColor, end: _currentColor),
-      duration: const Duration(milliseconds: 300),
-      builder: (context, color, child) {
-        return TabBar(
-          labelPadding: const EdgeInsets.symmetric(horizontal: 10),
+    final animation = widget.controller.animation;
 
-          controller: widget.controller,
-          isScrollable: true,
-          indicatorColor: color,
-          labelColor: color,
-          unselectedLabelColor: Theme.of(context).unselectedWidgetColor,
-          tabAlignment: TabAlignment.center,
-          tabs: widget.tabs.asMap().entries.map((entry) {
-            final index = entry.key;
-            final label = entry.value;
+    if (animation == null) {
+      // Fallback in rare cases when animation is null
+      final fallbackColor = widget.tabColors[widget.controller.index];
+      return _buildTabBar(fallbackColor);
+    }
 
-            return Tab(
-              child: Text(
-                label,
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                  color: widget.tabColors[index],
-                ),
-              ),
-            );
-          }).toList(),
-        );
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, child) {
+        final double value = animation.value;
+        final int fromIndex = value.floor().clamp(0, widget.tabColors.length - 1);
+        final int toIndex = value.ceil().clamp(0, widget.tabColors.length - 1);
+        final double t = value - fromIndex;
+
+        final Color indicatorColor = Color.lerp(
+          widget.tabColors[fromIndex],
+          widget.tabColors[toIndex],
+          t,
+        )!;
+
+        return _buildTabBar(indicatorColor);
       },
+    );
+  }
+
+  Widget _buildTabBar(Color indicatorColor) {
+    return TabBar(
+      labelPadding: const EdgeInsets.symmetric(horizontal: 10),
+      controller: widget.controller,
+      isScrollable: true,
+      indicatorColor: indicatorColor,
+      labelColor: indicatorColor,
+      unselectedLabelColor: Theme.of(context).unselectedWidgetColor,
+      tabAlignment: TabAlignment.center,
+      tabs: widget.tabs.asMap().entries.map((entry) {
+        final index = entry.key;
+        final label = entry.value;
+
+        return Tab(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 16,
+              color: widget.tabColors[index],
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 }

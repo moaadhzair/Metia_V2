@@ -14,6 +14,7 @@ class UserProvider extends ChangeNotifier {
   bool hasNextPage = true;
   bool _isLoggedIn = false;
   Profile _user = Profile(
+    userLists: [],
     userActivityPage: ActivityPage(
       pageInfo: PageInfo(
         total: 0,
@@ -82,6 +83,10 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<String> getAuthKey() async {
+    return _getAuthKey();
+  }
+
   Future<String> _getAuthKey() async {
     return await UserData.getAuthKey();
   }
@@ -106,6 +111,11 @@ class UserProvider extends ChangeNotifier {
     const String viewerQuery = '''
     query {
       Viewer {
+        mediaListOptions {
+          animeList {
+            customLists
+          }
+        }
         id
         name
         avatar {
@@ -223,13 +233,27 @@ class UserProvider extends ChangeNotifier {
             : group['name'] == "Airing"
             ? Colors.orange
             : Colors.white,
-        isInteractive: false,
+        isInteractive: group['name'] != "Airing",
         name: group['name'],
         entries: [], // will fill this next
+        isCustom: ![
+          'Watching',
+          'Planning',
+          'Completed',
+          'Paused',
+          'Dropped',
+        ].contains(group['name']),
       );
+
+      
 
       // Step 2: Fill in the entries and set the group reference
       List<MediaListEntry> entries = (group['entries'] as List).map((entry) {
+
+
+        if(466921483 == entry['id']){
+          debugPrint(entry['id']);
+      }
         final mediaJson = entry['media'];
         var mediaListEntry = MediaListEntry(
           id: entry['id'],
@@ -256,6 +280,7 @@ class UserProvider extends ChangeNotifier {
       name: "Airing",
       entries: [],
       isInteractive: false,
+      isCustom: false,
     );
 
     // Step 2: Extract "airing" entries and reassign their group
@@ -295,6 +320,27 @@ class UserProvider extends ChangeNotifier {
     // Fetch user activities as before
     ActivityPage activityPage = await _fetchUserActivities(userId, 1, 20);
 
+    final customLists = List<String>.from(
+      viewer['mediaListOptions']['animeList']['customLists'],
+    );
+
+    final defaultLists = [
+      {'name': 'Watching', 'isCustom': false},
+      {'name': 'Planning', 'isCustom': false},
+      {'name': 'Completed', 'isCustom': false},
+      {'name': 'Dropped', 'isCustom': false},
+      {'name': 'Paused', 'isCustom': false},
+    ];
+
+    final custom = customLists.map(
+      (name) => {
+        'name': name[0].toUpperCase() + name.substring(1),
+        'isCustom': true,
+      },
+    );
+
+    final userList = [...defaultLists, ...custom];
+
     // Assign your Profile object
     _user = Profile(
       name: viewer["name"],
@@ -304,6 +350,7 @@ class UserProvider extends ChangeNotifier {
       statistics: Statistics.fromJson(viewer["statistics"]["anime"]),
       userLibrary: UserLibrary(library: parsedGroups),
       userActivityPage: activityPage,
+      userLists: userList,
     );
   }
 

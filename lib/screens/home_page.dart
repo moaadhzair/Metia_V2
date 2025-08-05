@@ -87,90 +87,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             PopupMenuButton<String>(
               icon: const Icon(Icons.more_vert),
               onSelected: (value) {
-                switch (value) {
-                  case 'logout':
-                    Provider.of<UserProvider>(context, listen: false).logOut();
-                    break;
-                  case 'refresh':
-                    break;
-                  case 'createList':
-                    break;
-                  case 'changeSource':
-                    break;
-                  case 'revertTheme':
-                    bool isDarkMode = Provider.of<ThemeProvider>(
-                      context,
-                      listen: false
-                    ).isDarkMode;
-                    if (isDarkMode) {
-                      Provider.of<ThemeProvider>(
-                        context,
-                        listen: false,
-                      ).setLightMode();
-                    } else {
-                      Provider.of<ThemeProvider>(
-                        context,
-                        listen: false,
-                      ).setDarkMode();
-                    }
-                }
+                _switchMenuButtons(value, context);
               },
-              itemBuilder: (BuildContext context) => [
-                const PopupMenuItem<String>(
-                  enabled: false,
-                  height: 36,
-                  child: Text('Library'),
-                ),
-                const PopupMenuItem<String>(
-                  value: 'refresh',
-                  height: 36,
-                  child: Text('Refresh'),
-                ),
-                const PopupMenuItem<String>(
-                  value: 'createList',
-                  height: 36,
-                  child: Text('Create a New List'),
-                ),
-
-                const PopupMenuItem<String>(
-                  height: 36,
-                  enabled: false,
-                  child: Text('Explorer'),
-                ),
-                const PopupMenuItem<String>(
-                  value: 'changeSource',
-                  height: 36,
-                  child: Text('Change Source'),
-                ),
-
-                const PopupMenuItem<String>(
-                  height: 36,
-                  enabled: false,
-                  child: Text('Profile', textAlign: TextAlign.end),
-                ),
-                const PopupMenuItem<String>(
-                  value: 'logout',
-                  height: 36,
-                  child: Text('Log Out'),
-                ),
-                const PopupMenuItem<String>(
-                  height: 36,
-                  enabled: false,
-                  child: Text('General', textAlign: TextAlign.end),
-                ),
-                PopupMenuItem<String>(
-                  value: 'revertTheme',
-                  height: 36,
-                  child: Text(
-                    'Swith to ${Provider.of<ThemeProvider>(context, listen: false).isDarkMode ? "Light" : "Dark"} Mode',
-                  ),
-                ),
-                const PopupMenuItem<String>(
-                  value: 'Settings',
-                  height: 36,
-                  child: Text('Settings'),
-                ),
-              ],
+              itemBuilder: (BuildContext context) => _menuItemList(context),
             ),
         ],
 
@@ -202,5 +121,88 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         ],
       ),
     );
+  }
+}
+
+_menuItemList(BuildContext context) {
+  return [
+    const PopupMenuItem<String>(
+      enabled: false,
+      height: 36,
+      child: Text('Library'),
+    ),
+    const PopupMenuItem<String>(
+      value: 'refresh',
+      height: 36,
+      child: Text('Refresh'),
+    ),
+    const PopupMenuItem<String>(
+      value: 'createList',
+      height: 36,
+      child: Text('Create a New List'),
+    ),
+
+    const PopupMenuItem<String>(
+      height: 36,
+      enabled: false,
+      child: Text('Explorer'),
+    ),
+    const PopupMenuItem<String>(
+      value: 'changeSource',
+      height: 36,
+      child: Text('Change Source'),
+    ),
+
+    const PopupMenuItem<String>(
+      height: 36,
+      enabled: false,
+      child: Text('Profile', textAlign: TextAlign.end),
+    ),
+    const PopupMenuItem<String>(
+      value: 'logout',
+      height: 36,
+      child: Text('Log Out'),
+    ),
+    const PopupMenuItem<String>(
+      height: 36,
+      enabled: false,
+      child: Text('General', textAlign: TextAlign.end),
+    ),
+    PopupMenuItem<String>(
+      value: 'revertTheme',
+      height: 36,
+      child: Text(
+        'Swith to ${Provider.of<ThemeProvider>(context, listen: false).isDarkMode ? "Light" : "Dark"} Mode',
+      ),
+    ),
+    const PopupMenuItem<String>(
+      value: 'Settings',
+      height: 36,
+      child: Text('Settings'),
+    ),
+  ];
+}
+
+_switchMenuButtons(value, context) {
+  switch (value) {
+    case 'logout':
+      Provider.of<UserProvider>(context, listen: false).logOut();
+      break;
+    case 'refresh':
+      break;
+    case 'createList':
+      break;
+    case 'changeSource':
+      break;
+    case 'revertTheme':
+      bool isDarkMode = Provider.of<ThemeProvider>(
+        context,
+        listen: false,
+      ).isDarkMode;
+      if (isDarkMode) {
+        Provider.of<ThemeProvider>(context, listen: false).setLightMode();
+      } else {
+        Provider.of<ThemeProvider>(context, listen: false).setDarkMode();
+      }
   }
 }

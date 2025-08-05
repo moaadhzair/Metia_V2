@@ -1,12 +1,11 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/services.dart';
 import 'package:metia/anilist/anime.dart';
-import 'dart:io';
 
 import 'package:metia/data/user/user_library.dart';
+import 'package:metia/models/login_provider.dart';
+import 'package:provider/provider.dart';
 
 class CustomPageRoute extends PageRouteBuilder {
   final WidgetBuilder builder;
@@ -18,7 +17,7 @@ class CustomPageRoute extends PageRouteBuilder {
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(opacity: animation, child: child);
         },
-        opaque: true, // Allows previous page to show through if needed
+        opaque: true,
       );
 }
 
@@ -43,7 +42,6 @@ class AnimeCard extends StatefulWidget {
 }
 
 class _AnimeCardState extends State<AnimeCard> {
-  final double _opacity = 0.0;
   late final String title;
 
   @override
@@ -69,31 +67,181 @@ class _AnimeCardState extends State<AnimeCard> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   //cover
-                  SizedBox(
-                    height: 183,
-                    width: 135,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          CachedNetworkImage(
-                            imageUrl: widget.anime.media.coverImage.extraLarge,
-                            fit: BoxFit.cover,
-                            placeholder: (context, url) => const Center(
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                            errorWidget: (context, url, error) =>
-                                const Icon(Icons.error),
-                          ),
-                          widget.anime.media.nextAiringEpisode != null
-                              ? _buildEpAiring(
-                                  widget.anime.media.nextAiringEpisode!,
-                                )
-                              : const SizedBox(),
-                        ],
+                  CupertinoContextMenu.builder(
+                    actions: [
+                      // Watch
+                      CupertinoContextMenuAction(
+                        onPressed: () {
+                          debugPrint("Watching $title");
+                          // widget.anime.getGroup()!.changeEntryStatus(
+                          //   context,
+                          //   widget.anime,
+                          //   "shiit",
+                          //   true,
+                          // );
+                          Provider.of<UserProvider>(
+                            context,
+                            listen: false,
+                          ).reloadUserData();
+                          Navigator.of(context).pop();
+                        },
+                        trailingIcon: CupertinoIcons.play,
+                        child: const Text("Watch"),
                       ),
-                    ),
+                      // Copy name
+                      CupertinoContextMenuAction(
+                        trailingIcon: CupertinoIcons.doc_on_doc,
+                        child: const Text("Copy Name"),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          debugPrint("Copied \"$title\" to clipboard");
+                        },
+                      ),
+                      // Change to another List
+                      if (widget.anime.getGroup()!.isInteractive)
+                        CupertinoContextMenuAction(
+                          trailingIcon: CupertinoIcons.square_arrow_right,
+                          child: const Text("Change to Another List"),
+                          onPressed: () {
+                            //TODO: change to another list
+
+                            showModalBottomSheet(
+                              context: context,
+                              builder: (context) {
+                                return ClipRRect(
+                                  borderRadius: const BorderRadius.only(
+                                    topLeft: Radius.circular(25),
+                                    topRight: Radius.circular(25),
+                                  ),
+                                  child: Scaffold(
+                                    body: Padding(
+                                      padding: const EdgeInsets.all(16.0),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            "Select the List:",
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                          SizedBox(height: 10),
+                                          Expanded(
+                                            child: ListView.separated(
+                                              itemBuilder: (context, index) {
+                                                //TODO: this should return a list of Media List Groups (custom one's too)
+                                                Map listDetails =
+                                                    Provider.of<UserProvider>(
+                                                      context,
+                                                    ).user.userLists[index];
+
+                                                return SizedBox(
+                                                  height: 50,
+                                                  child: Opacity(
+                                                    opacity:
+                                                        listDetails["name"] ==
+                                                            widget.anime
+                                                                .getGroup()!
+                                                                .name
+                                                        ? 0.5
+                                                        : 1,
+                                                    child: Card(
+
+                                                      child: Center(
+                                                        child: Text(
+                                                          listDetails["name"],
+                                                          style: TextStyle(
+                                                            fontSize: 16,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                              separatorBuilder:
+                                                  (context, index) =>
+                                                      SizedBox(height: 10),
+                                              itemCount:
+                                                  Provider.of<UserProvider>(
+                                                        context,
+                                                      )
+                                                      .user
+                                                      .userLists
+                                                      .length, // this should include , watching aplanning ........ and then the custom lists and not like this !!!!!
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                            //Navigator.of(context).pop();
+                          },
+                        ),
+                      // Remove from list
+                      if (widget.anime.getGroup()!.name != "Airing")
+                        CupertinoContextMenuAction(
+                          isDestructiveAction: true,
+                          trailingIcon: CupertinoIcons.delete,
+                          child: const Text("Remove From List"),
+                          onPressed: () async {
+                            //TODO: delete the entry from the group entry
+                            widget.anime.getGroup()!.deleteEntry(
+                              context,
+                              widget.anime.id,
+                            );
+                            Provider.of<UserProvider>(
+                              context,
+                              listen: false,
+                            ).reloadUserData();
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                    ],
+                    builder: (context, animation) {
+                      return GestureDetector(
+                        onTap: () {debugPrint("tapped on $widget");
+                          widget.anime.status;
+                        },
+                        child: SizedBox(
+                          height: 183,
+                          width: 135,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                CachedNetworkImage(
+                                  imageUrl:
+                                      widget.anime.media.coverImage.extraLarge,
+                                  fit: BoxFit.cover,
+                                  placeholder: (context, url) => const Center(
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  ),
+                                  errorWidget: (context, url, error) =>
+                                      const Icon(Icons.error),
+                                ),
+                                widget.anime.media.nextAiringEpisode != null
+                                    ? _buildEpAiring(
+                                        widget.anime.media.nextAiringEpisode!,
+                                      )
+                                    : const SizedBox(),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   ),
                   const SizedBox(height: 5),
                   //title
@@ -139,7 +287,7 @@ class _AnimeCardState extends State<AnimeCard> {
         children: [
           Text(
             isNewEpisodeTab
-                ? "Airing"
+                ? mediaListGroup?.name as String
                 : "${widget.anime.progress}/${widget.anime.media.episodes ?? "?"}",
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
@@ -169,7 +317,9 @@ class _AnimeCardState extends State<AnimeCard> {
                     Text(
                       widget.anime.media.averageScore == 0
                           ? "0.0"
-                          : "0.0", //Tools.insertAt(widget.data["media"]["averageScore"].toString(), ".", 1),
+                          : widget.anime.media.averageScore
+                                .toString()
+                                .replaceRange(1, 1, '.'),
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,

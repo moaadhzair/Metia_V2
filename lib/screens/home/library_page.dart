@@ -7,6 +7,7 @@ import 'package:metia/widgets/library_anime_card.dart';
 import 'package:provider/provider.dart';
 import 'package:metia/widgets/color_transition_tab_bar.dart';
 
+
 class LibraryPage extends StatefulWidget {
   const LibraryPage({super.key});
 
@@ -43,17 +44,13 @@ class _LibraryPageState extends State<LibraryPage>
 
     return Scaffold(
       body: isLoggedIn
-          ? Provider.of<UserProvider>(
-                      context,
-                    ).user.userLibrary.library.length ==
-                    0
+          ? Provider.of<UserProvider>(context).user.userLibrary.library.isEmpty
                 ? Center(child: CircularProgressIndicator())
                 : Column(
                     children: [
                       Provider.of<UserProvider>(
-                                context,
-                              ).user.userLibrary.library.length !=
-                              0
+                            context,
+                          ).user.userLibrary.library.isNotEmpty
                           ? _buildTabBar()
                           : null,
                       _buildLibraryGrid(),
@@ -97,33 +94,23 @@ class _LibraryPageState extends State<LibraryPage>
                     MediaQuery.of(context).size.width,
                     itemWidth: 135,
                   ),
-                  mainAxisExtent:
-                      /*state.state == "New Episode" ? 283 : */
-                      268,
-                  // crossAxisSpacing: 10,
-                  // mainAxisSpacing: 10,
+                  mainAxisExtent: 268,
                   childAspectRatio: 0.7,
                 ),
                 itemCount: e.entries.length,
                 itemBuilder: (context, index) {
                   MediaListEntry anime = e.entries[index];
-      
                   return AnimeCard(
                     key: ValueKey(anime.id),
                     context: context,
                     index: index,
                     tabName: anime.status,
                     anime: anime,
-      
-                    onLibraryChanged: () {
-                      print("a new anime is added or removed");
-                      // _fetchAnimeLibrary(false);
-                      // _fetchPopularAnime();
-                    },
+                    onLibraryChanged: () {},
                   );
                 },
               ),
-      
+
               onRefresh: () {
                 return Provider.of<UserProvider>(
                   context,
