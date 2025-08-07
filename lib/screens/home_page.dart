@@ -41,6 +41,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   Future<void> initDeepLinks() async {
     _linkSubscription = AppLinks().uriLinkStream.listen((uri) async {
+      debugPrint('Received deep link: $uri');
       final authorizationCode = uri.toString().replaceAll("metia://?code=", "");
 
       final tokenEndpoint = Uri.https('anilist.co', '/api/v2/oauth/token');

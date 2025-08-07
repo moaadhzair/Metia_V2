@@ -293,7 +293,7 @@ class MediaListGroup {
         await moveEntryFromCustomListToCustomList(context, entry, listName);
       } else {
         debugPrint("Send the entry from status to custom");
-        await addToCustomList(context, entry, listName.toLowerCase());
+        await addToCustomList(context, entry, listName);
       }
     } else {
       if (entry.getGroup()!.isCustom) {

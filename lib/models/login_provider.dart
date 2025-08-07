@@ -230,8 +230,6 @@ class UserProvider extends ChangeNotifier {
       final mediaListGroup = MediaListGroup(
         color: group['name'] == "Watching"
             ? Colors.green
-            : group['name'] == "Airing"
-            ? Colors.orange
             : Colors.white,
         isInteractive: group['name'] != "Airing",
         name: group['name'],
@@ -250,10 +248,6 @@ class UserProvider extends ChangeNotifier {
       // Step 2: Fill in the entries and set the group reference
       List<MediaListEntry> entries = (group['entries'] as List).map((entry) {
 
-
-        if(466921483 == entry['id']){
-          debugPrint(entry['id'].toString());
-      }
         final mediaJson = entry['media'];
         var mediaListEntry = MediaListEntry(
           id: entry['id'],
@@ -274,7 +268,7 @@ class UserProvider extends ChangeNotifier {
       return mediaListGroup; // ✅ return the filled group
     }).toList();
 
-    // Step 1: Create the Airing group early (empty for now)
+    //Step 1: Create the Airing group early (empty for now)
     final airingGroup = MediaListGroup(
       color: Colors.orange,
       name: "Airing",
@@ -292,8 +286,14 @@ class UserProvider extends ChangeNotifier {
 
           if (nextEp != null && nextEp.episode > (entry.progress ?? 0) + 1) {
             // Reassign entry to airing group
-            entry.setGroup(airingGroup);
-            airingGroup.entries.add(entry);
+            MediaListEntry newEntry = MediaListEntry(
+              id: entry.id,
+              progress: entry.progress,
+              status: entry.status,
+              media: media,
+            );
+            newEntry.setGroup(airingGroup);
+            airingGroup.entries.add(newEntry);
           }
         }
       }

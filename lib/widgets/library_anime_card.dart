@@ -126,7 +126,7 @@ class _AnimeCardState extends State<AnimeCard> {
                       return GestureDetector(
                         onTap: () {
                           debugPrint("tapped on $widget");
-                          widget.anime.status;
+                          widget.anime;
                         },
                         child: SizedBox(
                           height: 183,
@@ -206,7 +206,7 @@ class _AnimeCardState extends State<AnimeCard> {
             isNewEpisodeTab
                 ? mediaListGroup?.name as String
                 : "${widget.anime.progress}/${widget.anime.media.episodes ?? "?"}",
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
           ),
           isNewEpisodeTab
               ? Row(
@@ -217,14 +217,14 @@ class _AnimeCardState extends State<AnimeCard> {
                       "${widget.anime.media.nextAiringEpisode!.episode - 1} Ep",
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: 14,
                         color: Colors.orange,
                       ),
                     ),
                     const Icon(
                       Icons.notifications_active,
                       color: Colors.orange,
-                      size: 18,
+                      size: 16,
                     ),
                   ],
                 )
@@ -232,18 +232,19 @@ class _AnimeCardState extends State<AnimeCard> {
                   spacing: 2,
                   children: [
                     Text(
-                      widget.anime.media.averageScore == 0
+                      widget.anime.media.averageScore == null ||
+                              widget.anime.media.averageScore == 0
                           ? "0.0"
                           : widget.anime.media.averageScore
                                 .toString()
                                 .replaceRange(1, 1, '.'),
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: 14,
                         color: Colors.orange,
                       ),
                     ),
-                    const Icon(Icons.star, color: Colors.orange, size: 18),
+                    const Icon(Icons.star, color: Colors.orange, size: 16),
                   ],
                 ),
         ],
