@@ -14,6 +14,7 @@ class UserProvider extends ChangeNotifier {
   bool hasNextPage = true;
   bool _isLoggedIn = false;
   Profile _user = Profile(
+    explorerContent: [],
     userLists: [],
     userActivityPage: ActivityPage(
       pageInfo: PageInfo(
@@ -156,47 +157,111 @@ class UserProvider extends ChangeNotifier {
 
     // Step 2: Query MediaListCollection with userId
     const String mediaListQuery = '''
-    query (\$type: MediaType!, \$userId: Int!) {
-      MediaListCollection(type: \$type, userId: \$userId) {
-        lists {
-          name
-          entries {
-            id
-            progress
-            status
-            media {
+          query (
+        \$type: MediaType!,
+        \$userId: Int!,
+        \$season: MediaSeason,
+        \$seasonYear: Int,
+        \$nextSeason: MediaSeason,
+        \$nextYear: Int
+      ) {
+        MediaListCollection(type: \$type, userId: \$userId) {
+          lists {
+            name
+            entries {
               id
-              type
-              status(version: 2)
-              isAdult
-              bannerImage
-              description
-              genres
-              title {
-                english
-                romaji
-                native
-              }
-              episodes
-              averageScore
-              season
-              seasonYear
-              coverImage {
-                large
-                extraLarge
-                medium
-                color
-              }
-              duration
-              nextAiringEpisode {
-                airingAt
-                episode
+              progress
+              status
+              media {
+                id
+                type
+                status(version: 2)
+                isAdult
+                bannerImage
+                description
+                genres
+                title {
+                  english
+                  romaji
+                  native
+                }
+                episodes
+                averageScore
+                season
+                seasonYear
+                coverImage {
+                  large
+                  extraLarge
+                  medium
+                  color
+                }
+                duration
+                nextAiringEpisode {
+                  airingAt
+                  episode
+                }
               }
             }
           }
         }
+
+        trending: Page(page: 1, perPage: 6) {
+          media(sort: TRENDING_DESC, type: ANIME, isAdult: false) {
+            ...mediaFields
+          }
+        }
+        season: Page(page: 1, perPage: 6) {
+          media(season: \$season, seasonYear: \$seasonYear, sort: POPULARITY_DESC, type: ANIME, isAdult: false) {
+            ...mediaFields
+          }
+        }
+        nextSeason: Page(page: 1, perPage: 6) {
+          media(season: \$nextSeason, seasonYear: \$nextYear, sort: POPULARITY_DESC, type: ANIME, isAdult: false) {
+            ...mediaFields
+          }
+        }
+        popular: Page(page: 1, perPage: 6) {
+          media(sort: POPULARITY_DESC, type: ANIME, isAdult: false) {
+            ...mediaFields
+          }
+        }
+        top: Page(page: 1, perPage: 100) {
+          media(sort: SCORE_DESC, type: ANIME, isAdult: false) {
+            ...mediaFields
+          }
+        }
       }
-    }
+
+      fragment mediaFields on Media {
+        id
+                type
+                status(version: 2)
+                isAdult
+                bannerImage
+                description
+                genres
+                title {
+                  english
+                  romaji
+                  native
+                }
+                episodes
+                averageScore
+                season
+                seasonYear
+                coverImage {
+                  large
+                  extraLarge
+                  medium
+                  color
+                }
+                duration
+                nextAiringEpisode {
+                  airingAt
+                  episode
+                }
+      }
+
   ''';
 
     final mediaListResponse = await http.post(
@@ -208,7 +273,7 @@ class UserProvider extends ChangeNotifier {
       },
       body: jsonEncode({
         'query': mediaListQuery,
-        'variables': {'type': 'ANIME', 'userId': userId},
+        'variables': {'type': 'ANIME', 'userId': userId, "season": "SPRING", "seasonYear": 2025, "nextSeason": "SUMMER", "nextYear": 2025},
       }),
     );
 
@@ -228,9 +293,7 @@ class UserProvider extends ChangeNotifier {
     List<MediaListGroup> parsedGroups = mediaListGroups.map((group) {
       // Step 1: Create the MediaListGroup first with empty entries
       final mediaListGroup = MediaListGroup(
-        color: group['name'] == "Watching"
-            ? Colors.green
-            : Colors.white,
+        color: group['name'] == "Watching" ? Colors.green : Colors.white,
         isInteractive: group['name'] != "Airing",
         name: group['name'],
         entries: [], // will fill this next
@@ -243,11 +306,8 @@ class UserProvider extends ChangeNotifier {
         ].contains(group['name']),
       );
 
-      
-
       // Step 2: Fill in the entries and set the group reference
       List<MediaListEntry> entries = (group['entries'] as List).map((entry) {
-
         final mediaJson = entry['media'];
         var mediaListEntry = MediaListEntry(
           id: entry['id'],
@@ -332,17 +392,29 @@ class UserProvider extends ChangeNotifier {
       {'name': 'Paused', 'isCustom': false},
     ];
 
-    final custom = customLists.map(
-      (name) => {
-        'name': name,
-        'isCustom': true,
-      },
-    );
+    final custom = customLists.map((name) => {'name': name, 'isCustom': true});
 
     final userList = [...defaultLists, ...custom];
 
     // Assign your Profile object
     _user = Profile(
+      explorerContent: [
+        (mediaListData["data"]["trending"]["media"] as List)
+            .map((entry) => Media.fromJson(entry))
+            .toList(),
+        (mediaListData["data"]["season"]["media"] as List)
+            .map((entry) => Media.fromJson(entry))
+            .toList(),
+        (mediaListData["data"]["nextSeason"]["media"] as List)
+            .map((entry) => Media.fromJson(entry))
+            .toList(),
+        (mediaListData["data"]["popular"]["media"] as List)
+            .map((entry) => Media.fromJson(entry))
+            .toList(),
+        (mediaListData["data"]["top"]["media"] as List)
+            .map((entry) => Media.fromJson(entry))
+            .toList(),
+      ],
       name: viewer["name"],
       avatarLink: viewer["avatar"]["large"],
       bannerImage: viewer["bannerImage"] ?? "null",

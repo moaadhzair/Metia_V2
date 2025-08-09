@@ -12,7 +12,8 @@ class Profile extends ChangeNotifier{
   UserLibrary userLibrary;
   Statistics statistics;
   List<Map<String, dynamic>> userLists;
-  ActivityPage userActivityPage; // Now stores ActivityPage instead of List
+  ActivityPage userActivityPage;
+  List<List<Media>> explorerContent;
 
   Profile({
     required this.name,
@@ -23,6 +24,7 @@ class Profile extends ChangeNotifier{
     required this.statistics,
     required this.userActivityPage,
     required this.userLists,
+    required this .explorerContent,
   });
 
   factory Profile.fromJson(Map<String, dynamic> json) {
@@ -38,6 +40,7 @@ class Profile extends ChangeNotifier{
         'pageInfo': json['pageInfo'] ?? {},
         'activities': json['userActivity'] ?? [],
       }),
+      explorerContent: [],
     );
   }
 }

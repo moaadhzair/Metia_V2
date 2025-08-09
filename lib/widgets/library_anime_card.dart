@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:metia/anilist/anime.dart';
+import 'package:metia/data/user/profile.dart';
 
 import 'package:metia/data/user/user_library.dart';
 import 'package:metia/models/login_provider.dart';
@@ -125,8 +126,8 @@ class _AnimeCardState extends State<AnimeCard> {
                     builder: (context, animation) {
                       return GestureDetector(
                         onTap: () {
-                          debugPrint("tapped on $widget");
-                          widget.anime;
+                          debugPrint("tapped on lamo");
+                          
                         },
                         child: SizedBox(
                           height: 183,
@@ -172,7 +173,9 @@ class _AnimeCardState extends State<AnimeCard> {
                           //color: Colors.white,
                           color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.w600,
-                          fontSize: 16.5,
+                          fontSize: Theme.of(
+                            context,
+                          ).textTheme.bodyLarge!.fontSize,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -197,15 +200,21 @@ class _AnimeCardState extends State<AnimeCard> {
         mediaListGroup?.name == "Airing";
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Row(
-        mainAxisAlignment: isNewEpisodeTab ? MainAxisAlignment.center : MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: isNewEpisodeTab
+            ? MainAxisAlignment.center
+            : MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          if (!isNewEpisodeTab) Text(
-            "${widget.anime.progress}/${widget.anime.media.episodes ?? "?"}",
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-          ),
+          if (!isNewEpisodeTab)
+            Text(
+              "${widget.anime.progress}/${widget.anime.media.episodes ?? "?"}",
+              style: TextStyle(
+                fontSize: Theme.of(context).textTheme.bodyMedium!.fontSize,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           isNewEpisodeTab
               ? Row(
                   spacing: 2,
@@ -213,9 +222,11 @@ class _AnimeCardState extends State<AnimeCard> {
                   children: [
                     Text(
                       "${(widget.anime.media.nextAiringEpisode!.episode - 1) - widget.anime.progress!} Ep Behind",
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                        fontSize: Theme.of(
+                          context,
+                        ).textTheme.bodyMedium!.fontSize,
                         color: Colors.orange,
                       ),
                     ),
@@ -236,9 +247,11 @@ class _AnimeCardState extends State<AnimeCard> {
                           : widget.anime.media.averageScore
                                 .toString()
                                 .replaceRange(1, 1, '.'),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                        fontSize: Theme.of(
+                          context,
+                        ).textTheme.bodyMedium!.fontSize,
                         color: Colors.orange,
                       ),
                     ),
