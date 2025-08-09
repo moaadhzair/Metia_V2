@@ -199,13 +199,11 @@ class _AnimeCardState extends State<AnimeCard> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 5),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: isNewEpisodeTab ? MainAxisAlignment.center : MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Text(
-            isNewEpisodeTab
-                ? mediaListGroup?.name as String
-                : "${widget.anime.progress}/${widget.anime.media.episodes ?? "?"}",
+          if (!isNewEpisodeTab) Text(
+            "${widget.anime.progress}/${widget.anime.media.episodes ?? "?"}",
             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
           ),
           isNewEpisodeTab
@@ -214,7 +212,7 @@ class _AnimeCardState extends State<AnimeCard> {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      "${widget.anime.media.nextAiringEpisode!.episode - 1} Ep",
+                      "${(widget.anime.media.nextAiringEpisode!.episode - 1) - widget.anime.progress!} Ep Behind",
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
