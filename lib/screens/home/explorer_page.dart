@@ -103,7 +103,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                   SliverToBoxAdapter(child: SizedBox(height: 16)),
                   _buildSection(user.explorerContent[3], "All Time Popular"),
                   SliverToBoxAdapter(child: SizedBox(height: 16)),
-                    
+
                   SliverToBoxAdapter(
                     child: Text(
                       "Top 100 Anime",
@@ -116,7 +116,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                     ),
                   ),
                   SliverToBoxAdapter(child: SizedBox(height: 16)),
-                    
+
                   _buildTop100AnimeSection(user.explorerContent[4]),
                 ],
               ),
@@ -234,12 +234,23 @@ class _ExplorerPageState extends State<ExplorerPage> {
               scrollDirection: Axis.horizontal,
               itemBuilder: (context, index) {
                 Media media = entries[index];
+                bool alreadyInLibrary = false;
+                String listName = "";
+                for (var group in user.userLibrary.library) {
+                  for (var i = 0; i < group.entries.length; i++) {
+                    if (group.entries[i].media.id == media.id) {
+                      alreadyInLibrary = true;
+                      listName = group.name;
+                    }
+                  }
+                }
                 return ExplorerAnimeCard(
+                  alreadyInLibrary: alreadyInLibrary,
                   onLibraryChanged: () {},
                   context: context,
                   anime: media,
                   index: index,
-                  tabName: headLine,
+                  listName: listName,
                 );
               },
               itemCount: entries.length,
