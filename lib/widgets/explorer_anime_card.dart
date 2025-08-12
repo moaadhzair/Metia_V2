@@ -8,15 +8,17 @@ import 'package:metia/tools/general_tools.dart';
 import 'package:provider/provider.dart';
 
 class ExplorerAnimeCard extends StatefulWidget {
-  final String tabName;
+  final String listName;
   final int index;
   final Media anime;
   final VoidCallback? onLibraryChanged;
   final BuildContext context;
+  final bool alreadyInLibrary;
 
   const ExplorerAnimeCard({
+    required this.alreadyInLibrary,
     super.key,
-    required this.tabName,
+    required this.listName,
     required this.index,
     required this.anime,
     this.onLibraryChanged,
@@ -119,6 +121,22 @@ class _ExplorerAnimeCardState extends State<ExplorerAnimeCard> {
                                 ),
                               ),
                             ),
+                            Opacity(
+                              opacity: widget.alreadyInLibrary ? 0.60 : 0,
+                              child: Container(color: Colors.black),
+                            ),
+                            if (widget.alreadyInLibrary)
+                              Center(
+                                child: Text(
+                                  widget.listName,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
                           ],
                         ),
                       ),

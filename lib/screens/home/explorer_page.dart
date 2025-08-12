@@ -39,24 +39,57 @@ class _ExplorerPageState extends State<ExplorerPage> {
     user = Provider.of<UserProvider>(context).user;
     bool isLoggedIn = Provider.of<UserProvider>(context).isLoggedIn;
     return Scaffold(
-      body: isLoggedIn
-          ? _buildBody()
-          : Center(child: Text("Please log in to explore anime")),
-    );
-  }
-
-  _buildBody() {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: !(Platform.isIOS || Platform.isMacOS)
-          ? RefreshIndicator(
-              onRefresh: () async {
-                await Provider.of<UserProvider>(
-                  context,
-                  listen: false,
-                ).reloadUserData();
-              },
-              child: CustomScrollView(
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: !(Platform.isIOS || Platform.isMacOS)
+            ? RefreshIndicator(
+                onRefresh: () async {
+                  await Provider.of<UserProvider>(
+                    context,
+                    listen: false,
+                  ).reloadUserData();
+                },
+                child: CustomScrollView(
+                  slivers: [
+                    if (Platform.isIOS || Platform.isMacOS)
+                      CupertinoSliverRefreshControl(
+                        onRefresh: () async {
+                          await Provider.of<UserProvider>(
+                            context,
+                            listen: false,
+                          ).reloadUserData();
+                        },
+                      ),
+                    _buildSection(user.explorerContent[0], "Trending Now"),
+                    SliverToBoxAdapter(child: SizedBox(height: 16)),
+                    _buildSection(
+                      user.explorerContent[1],
+                      "Popular This Season",
+                    ),
+                    SliverToBoxAdapter(child: SizedBox(height: 16)),
+                    _buildSection(
+                      user.explorerContent[2],
+                      "Upcoming This Season",
+                    ),
+                    SliverToBoxAdapter(child: SizedBox(height: 16)),
+                    _buildSection(user.explorerContent[3], "All Time Popular"),
+                    SliverToBoxAdapter(child: SizedBox(height: 16)),
+                    SliverToBoxAdapter(
+                      child: Text(
+                        "Top 100 Anime",
+                        style: TextStyle(
+                          fontSize: Theme.of(
+                            context,
+                          ).textTheme.headlineSmall!.fontSize,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    _buildTop100AnimeSection(user.explorerContent[4]),
+                  ],
+                ),
+              )
+            : CustomScrollView(
                 slivers: [
                   if (Platform.isIOS || Platform.isMacOS)
                     CupertinoSliverRefreshControl(
@@ -77,7 +110,6 @@ class _ExplorerPageState extends State<ExplorerPage> {
                   ),
                   SliverToBoxAdapter(child: SizedBox(height: 16)),
                   _buildSection(user.explorerContent[3], "All Time Popular"),
-                  SliverToBoxAdapter(child: SizedBox(height: 16)),
                   SliverToBoxAdapter(
                     child: Text(
                       "Top 100 Anime",
@@ -92,39 +124,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                   _buildTop100AnimeSection(user.explorerContent[4]),
                 ],
               ),
-            )
-          : CustomScrollView(
-              slivers: [
-                if (Platform.isIOS || Platform.isMacOS)
-                  CupertinoSliverRefreshControl(
-                    onRefresh: () async {
-                      await Provider.of<UserProvider>(
-                        context,
-                        listen: false,
-                      ).reloadUserData();
-                    },
-                  ),
-                _buildSection(user.explorerContent[0], "Trending Now"),
-                SliverToBoxAdapter(child: SizedBox(height: 16)),
-                _buildSection(user.explorerContent[1], "Popular This Season"),
-                SliverToBoxAdapter(child: SizedBox(height: 16)),
-                _buildSection(user.explorerContent[2], "Upcoming This Season"),
-                SliverToBoxAdapter(child: SizedBox(height: 16)),
-                _buildSection(user.explorerContent[3], "All Time Popular"),
-                SliverToBoxAdapter(
-                  child: Text(
-                    "Top 100 Anime",
-                    style: TextStyle(
-                      fontSize: Theme.of(
-                        context,
-                      ).textTheme.headlineSmall!.fontSize,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                _buildTop100AnimeSection(user.explorerContent[4]),
-              ],
-            ),
+      ),
     );
   }
 
@@ -238,19 +238,30 @@ class _ExplorerPageState extends State<ExplorerPage> {
               scrollDirection: Axis.horizontal,
               itemBuilder: (context, index) {
                 Media media = entries[index];
+                bool alreadyInLibrary = false;
+                String listName = "";
+                for (var group in user.userLibrary.library) {
+                  for (var i = 0; i < group.entries.length; i++) {
+                    if (group.entries[i].media.id == media.id) {
+                      alreadyInLibrary = true;
+                      listName = group.name;
+                    }
+                  }
+                }
                 return SizedBox(
-                  width: 
+                  width:
                       itemWidth +
                       ((MediaQuery.of(context).orientation ==
                               Orientation.landscape)
                           ? -12.4
                           : -3.5),
                   child: ExplorerAnimeCard(
+                    alreadyInLibrary: alreadyInLibrary,
                     onLibraryChanged: () {},
                     context: context,
                     anime: media,
                     index: index,
-                    tabName: headLine,
+                    listName: headLine,
                   ),
                 );
               },
