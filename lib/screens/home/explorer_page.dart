@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:metia/anilist/anime.dart';
 import 'package:metia/data/user/profile.dart';
 import 'package:metia/models/login_provider.dart';
+import 'package:metia/tools/general_tools.dart';
 import 'package:metia/widgets/explorer_anime_card.dart';
 import 'package:metia/widgets/library_anime_card.dart';
 import 'package:provider/provider.dart';
@@ -19,6 +20,7 @@ class ExplorerPage extends StatefulWidget {
 
 class _ExplorerPageState extends State<ExplorerPage> {
   late Profile user;
+  late double itemWidth;
 
   @override
   void initState() {
@@ -28,60 +30,33 @@ class _ExplorerPageState extends State<ExplorerPage> {
 
   @override
   Widget build(BuildContext context) {
+    itemWidth =
+        MediaQuery.of(context).size.width /
+        Tools.getResponsiveCrossAxisVal(
+          MediaQuery.of(context).size.width,
+          itemWidth: 135,
+        );
     user = Provider.of<UserProvider>(context).user;
-
+    bool isLoggedIn = Provider.of<UserProvider>(context).isLoggedIn;
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: !(Platform.isIOS || Platform.isMacOS)
-            ? RefreshIndicator(
-                onRefresh: () async {
-                  await Provider.of<UserProvider>(
-                    context,
-                    listen: false,
-                  ).reloadUserData();
-                },
-                child: CustomScrollView(
-                  slivers: [
-                    if (Platform.isIOS || Platform.isMacOS)
-                      CupertinoSliverRefreshControl(
-                        onRefresh: () async {
-                          await Provider.of<UserProvider>(
-                            context,
-                            listen: false,
-                          ).reloadUserData();
-                        },
-                      ),
-                    _buildSection(user.explorerContent[0], "Trending Now"),
-                    SliverToBoxAdapter(child: SizedBox(height: 16)),
-                    _buildSection(
-                      user.explorerContent[1],
-                      "Popular This Season",
-                    ),
-                    SliverToBoxAdapter(child: SizedBox(height: 16)),
-                    _buildSection(
-                      user.explorerContent[2],
-                      "Upcoming This Season",
-                    ),
-                    SliverToBoxAdapter(child: SizedBox(height: 16)),
-                    _buildSection(user.explorerContent[3], "All Time Popular"),
-                    SliverToBoxAdapter(child: SizedBox(height: 16)),
-                    SliverToBoxAdapter(
-                      child: Text(
-                        "Top 100 Anime",
-                        style: TextStyle(
-                          fontSize: Theme.of(
-                            context,
-                          ).textTheme.headlineSmall!.fontSize,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                    _buildTop100AnimeSection(user.explorerContent[4]),
-                  ],
-                ),
-              )
-            : CustomScrollView(
+      body: isLoggedIn
+          ? _buildBody()
+          : Center(child: Text("Please log in to explore anime")),
+    );
+  }
+
+  _buildBody() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: !(Platform.isIOS || Platform.isMacOS)
+          ? RefreshIndicator(
+              onRefresh: () async {
+                await Provider.of<UserProvider>(
+                  context,
+                  listen: false,
+                ).reloadUserData();
+              },
+              child: CustomScrollView(
                 slivers: [
                   if (Platform.isIOS || Platform.isMacOS)
                     CupertinoSliverRefreshControl(
@@ -102,6 +77,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                   ),
                   SliverToBoxAdapter(child: SizedBox(height: 16)),
                   _buildSection(user.explorerContent[3], "All Time Popular"),
+                  SliverToBoxAdapter(child: SizedBox(height: 16)),
                   SliverToBoxAdapter(
                     child: Text(
                       "Top 100 Anime",
@@ -116,7 +92,39 @@ class _ExplorerPageState extends State<ExplorerPage> {
                   _buildTop100AnimeSection(user.explorerContent[4]),
                 ],
               ),
-      ),
+            )
+          : CustomScrollView(
+              slivers: [
+                if (Platform.isIOS || Platform.isMacOS)
+                  CupertinoSliverRefreshControl(
+                    onRefresh: () async {
+                      await Provider.of<UserProvider>(
+                        context,
+                        listen: false,
+                      ).reloadUserData();
+                    },
+                  ),
+                _buildSection(user.explorerContent[0], "Trending Now"),
+                SliverToBoxAdapter(child: SizedBox(height: 16)),
+                _buildSection(user.explorerContent[1], "Popular This Season"),
+                SliverToBoxAdapter(child: SizedBox(height: 16)),
+                _buildSection(user.explorerContent[2], "Upcoming This Season"),
+                SliverToBoxAdapter(child: SizedBox(height: 16)),
+                _buildSection(user.explorerContent[3], "All Time Popular"),
+                SliverToBoxAdapter(
+                  child: Text(
+                    "Top 100 Anime",
+                    style: TextStyle(
+                      fontSize: Theme.of(
+                        context,
+                      ).textTheme.headlineSmall!.fontSize,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                _buildTop100AnimeSection(user.explorerContent[4]),
+              ],
+            ),
     );
   }
 
@@ -226,16 +234,24 @@ class _ExplorerPageState extends State<ExplorerPage> {
           SizedBox(
             height: 268,
             child: ListView.separated(
-              separatorBuilder: (context, index) => const SizedBox(width: 10),
+              separatorBuilder: (context, index) => const SizedBox(width: 0),
               scrollDirection: Axis.horizontal,
               itemBuilder: (context, index) {
                 Media media = entries[index];
-                return ExplorerAnimeCard(
-                  onLibraryChanged: () {},
-                  context: context,
-                  anime: media,
-                  index: index,
-                  tabName: headLine,
+                return SizedBox(
+                  width: 
+                      itemWidth +
+                      ((MediaQuery.of(context).orientation ==
+                              Orientation.landscape)
+                          ? -12.4
+                          : -3.5),
+                  child: ExplorerAnimeCard(
+                    onLibraryChanged: () {},
+                    context: context,
+                    anime: media,
+                    index: index,
+                    tabName: headLine,
+                  ),
                 );
               },
               itemCount: entries.length,

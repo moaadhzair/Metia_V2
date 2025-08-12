@@ -1,6 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:metia/anilist/anime.dart';
+import 'package:metia/data/user/profile.dart';
+import 'package:metia/data/user/user_library.dart';
+import 'package:metia/models/login_provider.dart';
+import 'package:metia/tools/general_tools.dart';
+import 'package:provider/provider.dart';
 
 class ExplorerAnimeCard extends StatefulWidget {
   final String tabName;
@@ -24,6 +29,7 @@ class ExplorerAnimeCard extends StatefulWidget {
 
 class _ExplorerAnimeCardState extends State<ExplorerAnimeCard> {
   late final String title;
+  late final Profile user;
 
   @override
   void initState() {
@@ -33,6 +39,7 @@ class _ExplorerAnimeCardState extends State<ExplorerAnimeCard> {
         widget.anime.title.romaji ??
         widget.anime.title.native ??
         "NO TITLE";
+    Provider.of<UserProvider>(context, listen: false).user;
     super.initState();
   }
 
@@ -71,6 +78,46 @@ class _ExplorerAnimeCardState extends State<ExplorerAnimeCard> {
                               ),
                               errorWidget: (context, url, error) =>
                                   const Icon(Icons.error),
+                            ),
+                            Align(
+                              alignment: Alignment.bottomRight,
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: GestureDetector(
+                                  onTap: () {
+                                    MediaListEntry anime = MediaListEntry(
+                                      id: 0,
+                                      status: "notspecified",
+                                      media: widget.anime,
+                                    );
+                                    anime.setGroup(
+                                      MediaListGroup(
+                                        color: Colors.white,
+                                        name: "notspecifed",
+                                        entries: [],
+                                        isInteractive: false,
+                                        isCustom: false,
+                                      ),
+                                    );
+                                    Tools.transferToAnotherList(anime, context);
+                                  },
+                                  child: ClipRRect(
+                                    child: Container(
+                                      child: Icon(
+                                        Icons.add,
+                                        color: Colors.black,
+                                      ),
+                                      color: const Color.fromARGB(
+                                        121,
+                                        255,
+                                        255,
+                                        255,
+                                      ),
+                                    ),
+                                    borderRadius: BorderRadius.circular(25),
+                                  ),
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -126,18 +173,20 @@ class _ExplorerAnimeCardState extends State<ExplorerAnimeCard> {
             children: [
               Text(
                 widget.anime.averageScore == null ||
-                              widget.anime.averageScore == 0
-                          ? "0.0"
-                          : widget.anime.averageScore
-                                .toString()
-                                .replaceRange(1, 1, '.'),
+                        widget.anime.averageScore == 0
+                    ? "0.0"
+                    : widget.anime.averageScore.toString().replaceRange(
+                        1,
+                        1,
+                        '.',
+                      ),
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: Colors.orange,
                   fontSize: Theme.of(context).textTheme.bodyMedium!.fontSize,
                 ),
               ),
-              Icon(Icons.star, size: 16,color: Colors.orange,),
+              Icon(Icons.star, size: 16, color: Colors.orange),
             ],
           ),
         ],

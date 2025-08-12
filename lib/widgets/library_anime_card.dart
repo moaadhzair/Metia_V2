@@ -6,6 +6,7 @@ import 'package:metia/data/user/profile.dart';
 
 import 'package:metia/data/user/user_library.dart';
 import 'package:metia/models/login_provider.dart';
+import 'package:metia/tools/general_tools.dart';
 import 'package:provider/provider.dart';
 
 class CustomPageRoute extends PageRouteBuilder {
@@ -69,6 +70,7 @@ class _AnimeCardState extends State<AnimeCard> {
                 children: [
                   //cover
                   CupertinoContextMenu.builder(
+                    enableHapticFeedback: true,
                     actions: [
                       // Watch
                       CupertinoContextMenuAction(
@@ -100,7 +102,7 @@ class _AnimeCardState extends State<AnimeCard> {
                           onPressed: () {
                             //TODO: change to another list
 
-                            _transferToAnotherList();
+                            Tools.transferToAnotherList(widget.anime, context);
                           },
                         ),
                       // Remove from list
@@ -123,6 +125,7 @@ class _AnimeCardState extends State<AnimeCard> {
                           },
                         ),
                     ],
+                    
                     builder: (context, animation) {
                       return GestureDetector(
                         onTap: () {
@@ -263,144 +266,7 @@ class _AnimeCardState extends State<AnimeCard> {
     );
   }
 
-  _transferToAnotherList() {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        bool isLoading = false;
-
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(25),
-                topRight: Radius.circular(25),
-              ),
-              child: Scaffold(
-                body: Stack(
-                  children: [
-                    AbsorbPointer(
-                      absorbing: isLoading, // disables all taps
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            const Text(
-                              "Select the List:",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            Expanded(
-                              child: ListView.separated(
-                                itemBuilder: (context, index) {
-                                  Map listDetails = Provider.of<UserProvider>(
-                                    context,
-                                  ).user.userLists[index];
-
-                                  bool isCurrent =
-                                      listDetails["name"]
-                                          .toString()
-                                          .toLowerCase() ==
-                                      widget.anime
-                                          .getGroup()!
-                                          .name
-                                          .toLowerCase();
-
-                                  return SizedBox(
-                                    height: 50,
-                                    child: Opacity(
-                                      opacity: isCurrent ? 0.5 : 1,
-                                      child: ElevatedButton(
-                                        onPressed: isCurrent
-                                            ? null
-                                            : () async {
-                                                setModalState(
-                                                  () => isLoading = true,
-                                                );
-
-                                                await widget.anime
-                                                    .getGroup()!
-                                                    .changeEntryStatus(
-                                                      context,
-                                                      widget.anime,
-                                                      listDetails["name"],
-                                                      listDetails["isCustom"],
-                                                    );
-
-                                                await Provider.of<UserProvider>(
-                                                  context,
-                                                  listen: false,
-                                                ).reloadUserData();
-
-                                                if (context.mounted) {
-                                                  Navigator.of(
-                                                    context,
-                                                  ).pop(); // pop modal
-                                                  Navigator.of(
-                                                    context,
-                                                  ).pop(); // pop page
-                                                }
-                                              },
-                                        child: Stack(
-                                          children: [
-                                            Center(
-                                              child: Text(
-                                                listDetails["name"],
-                                                style: const TextStyle(
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                            ),
-                                            if (isCurrent)
-                                              const Align(
-                                                alignment:
-                                                    Alignment.centerRight,
-                                                child: Icon(Icons.check),
-                                              ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                },
-                                separatorBuilder: (context, index) =>
-                                    const SizedBox(height: 10),
-                                itemCount: Provider.of<UserProvider>(
-                                  context,
-                                ).user.userLists.length,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    // LOADING INDICATOR OVERLAY
-                    if (isLoading)
-                      Positioned.fill(
-                        child: Container(
-                          color: Colors.black.withOpacity(0.3),
-                          child: const Center(
-                            child: CircularProgressIndicator(),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
+ 
   _buildEpAiring(NextAiringEpisode nextAiring) {
     final int airingAt = nextAiring.airingAt;
     final int episode = nextAiring.episode;

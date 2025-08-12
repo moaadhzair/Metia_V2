@@ -2,11 +2,15 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:metia/anilist/anime.dart';
+import 'package:metia/data/user/user_library.dart';
+import 'package:metia/models/login_provider.dart';
+import 'package:provider/provider.dart';
 
-
-class Tools 
-{
-  static Future<String> fetchAniListAccessToken(String authorizationCode) async {
+class Tools {
+  static Future<String> fetchAniListAccessToken(
+    String authorizationCode,
+  ) async {
     final Uri tokenEndpoint = Uri.https('anilist.co', '/api/v2/oauth/token');
     final Map<String, String> payload = {
       'grant_type': 'authorization_code',
@@ -63,5 +67,190 @@ class Tools
       throw ArgumentError("Index out of range");
     }
     return original.substring(0, index) + toInsert + original.substring(index);
+  }
+
+  static transferToAnotherList(MediaListEntry anime, BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        bool isLoading = false;
+
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(25),
+                topRight: Radius.circular(25),
+              ),
+              child: Scaffold(
+                floatingActionButton: FloatingActionButton(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        TextEditingController _listNameController =
+                            TextEditingController();
+                        return AlertDialog(
+                          title: const Text('Create New Custom List'),
+                          content: TextField(
+                            controller: _listNameController,
+                            decoration: const InputDecoration(
+                              labelText: 'List Name',
+                            ),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: const Text('Cancel'),
+                            ),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.orange,
+                              ),
+                              onPressed: () async {
+                                String newListName = _listNameController.text
+                                    .trim();
+                                if (newListName.isNotEmpty) {
+                                  await Provider.of<UserProvider>(
+                                    context,
+                                    listen: false,
+                                  ).createCustomList(newListName);
+                                  await Provider.of<UserProvider>(
+                                    context,
+                                    listen: false,
+                                  ).reloadUserData();
+                                  Navigator.of(context).pop();
+                                }
+                              },
+                              child: const Text('Add'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                  child: Icon(Icons.add),
+                ),
+                body: Stack(
+                  children: [
+                    AbsorbPointer(
+                      absorbing: isLoading, // disables all taps
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const Text(
+                              "Select the List:",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Expanded(
+                              child: ListView.separated(
+                                itemBuilder: (context, index) {
+                                  Map listDetails = Provider.of<UserProvider>(
+                                    context,
+                                  ).user.userLists[index];
+
+                                  bool isCurrent =
+                                      listDetails["name"]
+                                          .toString()
+                                          .toLowerCase() ==
+                                      anime.getGroup()!.name.toLowerCase();
+
+                                  return SizedBox(
+                                    height: 50,
+                                    child: Opacity(
+                                      opacity: isCurrent ? 0.5 : 1,
+                                      child: ElevatedButton(
+                                        onPressed: isCurrent
+                                            ? null
+                                            : () async {
+                                                setModalState(
+                                                  () => isLoading = true,
+                                                );
+
+                                                await anime
+                                                    .getGroup()!
+                                                    .changeEntryStatus(
+                                                      context,
+                                                      anime,
+                                                      listDetails["name"],
+                                                      listDetails["isCustom"],
+                                                    );
+
+                                                await Provider.of<UserProvider>(
+                                                  context,
+                                                  listen: false,
+                                                ).reloadUserData();
+
+                                                if (context.mounted) {
+                                                  Navigator.of(
+                                                    context,
+                                                  ).pop(); // pop modal
+                                                  Navigator.of(
+                                                    context,
+                                                  ).pop(); // pop page
+                                                }
+                                              },
+                                        child: Stack(
+                                          children: [
+                                            Center(
+                                              child: Text(
+                                                listDetails["name"],
+                                                style: const TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                            if (isCurrent)
+                                              const Align(
+                                                alignment:
+                                                    Alignment.centerRight,
+                                                child: Icon(Icons.check),
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                                separatorBuilder: (context, index) =>
+                                    const SizedBox(height: 10),
+                                itemCount: Provider.of<UserProvider>(
+                                  context,
+                                ).user.userLists.length,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    // LOADING INDICATOR OVERLAY
+                    if (isLoading)
+                      Positioned.fill(
+                        child: Container(
+                          color: Colors.black.withOpacity(0.3),
+                          child: const Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 }

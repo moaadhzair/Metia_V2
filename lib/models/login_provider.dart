@@ -273,7 +273,14 @@ class UserProvider extends ChangeNotifier {
       },
       body: jsonEncode({
         'query': mediaListQuery,
-        'variables': {'type': 'ANIME', 'userId': userId, "season": "SPRING", "seasonYear": 2025, "nextSeason": "SUMMER", "nextYear": 2025},
+        'variables': {
+          'type': 'ANIME',
+          'userId': userId,
+          "season": "SPRING",
+          "seasonYear": 2025,
+          "nextSeason": "SUMMER",
+          "nextYear": 2025,
+        },
       }),
     );
 
@@ -511,5 +518,48 @@ class UserProvider extends ChangeNotifier {
     _isLoggedIn = false;
     UserData.deletAuthKey();
     notifyListeners();
+  }
+
+  Future<void> createCustomList(String newListName) async {
+    const String url = 'https://graphql.anilist.co';
+
+    List userAnimeLists = user.userLists;
+
+    List<String> userAnimeCustomLists = userAnimeLists
+        .where((list) => list['isCustom'] == true)
+        .map<String>((list) => list['name'] as String)
+        .toList();
+
+    userAnimeCustomLists.add(newListName);
+
+    final Map<String, dynamic> body = {
+      'query': '''
+      mutation(\$animeListOptions: MediaListOptionsInput) {
+        UpdateUser(animeListOptions: \$animeListOptions) {
+          id
+        }
+      }
+    ''',
+      'variables': {
+        'animeListOptions': {'customLists': userAnimeCustomLists},
+      },
+    };
+
+    String authKey = await _getAuthKey();
+
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ${authKey}',
+        'Accept': 'application/json',
+      },
+      body: jsonEncode(body),
+    );
+
+    if (response.statusCode == 200) {
+    } else {
+      print('Failed to add custom list: ${response.body}');
+    }
   }
 }

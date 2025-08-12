@@ -82,83 +82,91 @@ class _LibraryPageState extends State<LibraryPage>
     Profile user = Provider.of<UserProvider>(context).user;
 
     return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: TabBarView(
-          controller: _tabController,
-          children: user.userLibrary.library.map((e) {
-            return Platform.isAndroid
-                ? RefreshIndicator.adaptive(
-                    child: GridView.builder(
-                      key: PageStorageKey('library ${e.name}'),
-                      cacheExtent: 500,
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: Tools.getResponsiveCrossAxisVal(
-                          MediaQuery.of(context).size.width,
-                          itemWidth: 135,
-                        ),
-                        mainAxisExtent: 268,
-                        childAspectRatio: 0.7,
-                      ),
-                      itemCount: e.entries.length,
-                      itemBuilder: (context, index) {
-                        MediaListEntry anime = e.entries[index];
-                        return AnimeCard(
-                          key: ValueKey(anime.id),
-                          context: context,
-                          index: index,
-                          tabName: anime.status,
-                          anime: anime,
-                          onLibraryChanged: () {},
-                        );
-                      },
-                    ),
-
-                    onRefresh: () {
-                      return Provider.of<UserProvider>(
-                        context,
-                        listen: false,
-                      ).reloadUserData();
-                    },
-                  )
-                : CustomScrollView(
-                    cacheExtent: 500,
-                    slivers: [
-                      CupertinoSliverRefreshControl(
-                        onRefresh: () async {
-                          await Provider.of<UserProvider>(
-                            context,
-                            listen: false,
-                          ).reloadUserData();
-                        },
-                      ),
-                      SliverGrid(
-                        key: PageStorageKey('library ${e.name}'),
-
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: Tools.getResponsiveCrossAxisVal(
-                            MediaQuery.of(context).size.width,
-                            itemWidth: 135,
+      child: Column(
+        children: [
+          SizedBox(height: 2,),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TabBarView(
+                controller: _tabController,
+                children: user.userLibrary.library.map((e) {
+                  return Platform.isAndroid
+                      ? RefreshIndicator.adaptive(
+                          child: GridView.builder(
+                            key: PageStorageKey('library ${e.name}'),
+                            cacheExtent: 500,
+                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          
+                              crossAxisCount: Tools.getResponsiveCrossAxisVal(
+                                MediaQuery.of(context).size.width,
+                                itemWidth: 135,
+                              ),
+                              mainAxisExtent: 268,
+                              childAspectRatio: 0.7,
+                            ),
+                            itemCount: e.entries.length,
+                            itemBuilder: (context, index) {
+                              MediaListEntry anime = e.entries[index];
+                              return AnimeCard(
+                                key: ValueKey(anime.id),
+                                context: context,
+                                index: index,
+                                tabName: anime.status,
+                                anime: anime,
+                                onLibraryChanged: () {},
+                              );
+                            },
                           ),
-                          mainAxisExtent: 268,
-                          childAspectRatio: 0.7,
-                        ),
-                        delegate: SliverChildBuilderDelegate((context, index) {
-                          MediaListEntry anime = e.entries[index];
-                          return AnimeCard(
-                            key: ValueKey(anime.id),
-                            context: context,
-                            index: index,
-                            tabName: anime.status,
-                            anime: anime,
-                            onLibraryChanged: () {},
-                          );
-                        }, childCount: e.entries.length),
-                      ),
-                    ],
-                  );
-          }).toList(),
-        ),
+          
+                          onRefresh: () {
+                            return Provider.of<UserProvider>(
+                              context,
+                              listen: false,
+                            ).reloadUserData();
+                          },
+                        )
+                      : CustomScrollView(
+                          cacheExtent: 500,
+                          slivers: [
+                            CupertinoSliverRefreshControl(
+                              onRefresh: () async {
+                                await Provider.of<UserProvider>(
+                                  context,
+                                  listen: false,
+                                ).reloadUserData();
+                              },
+                            ),
+                            SliverGrid(
+                              key: PageStorageKey('library ${e.name}'),
+          
+                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: Tools.getResponsiveCrossAxisVal(
+                                  MediaQuery.of(context).size.width,
+                                  itemWidth: 135,
+                                ),
+                                mainAxisExtent: 268,
+                                childAspectRatio: 0.7,
+                              ),
+                              delegate: SliverChildBuilderDelegate((context, index) {
+                                MediaListEntry anime = e.entries[index];
+                                return AnimeCard(
+                                  key: ValueKey(anime.id),
+                                  context: context,
+                                  index: index,
+                                  tabName: anime.status,
+                                  anime: anime,
+                                  onLibraryChanged: () {},
+                                );
+                              }, childCount: e.entries.length),
+                            ),
+                          ],
+                        );
+                }).toList(),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

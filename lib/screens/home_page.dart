@@ -24,6 +24,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   StreamSubscription<Uri>? _linkSubscription;
 
   final List<Widget> _tabs = [LibraryPage(), ExplorerPage(), ProfilePage()];
+  bool isLandscpae = false;
 
   @override
   void initState() {
@@ -79,6 +80,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    isLandscpae = MediaQuery.of(context).orientation == Orientation.landscape;
     return Scaffold(
       appBar: AppBar(
         surfaceTintColor: Colors.transparent,
@@ -107,20 +109,61 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         ),
         title: const Text('Metia'),
       ),
-      body: IndexedStack(index: _tabController.index, children: _tabs),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _tabController.index,
-        onTap: (index) {
-          setState(() {
-            _tabController.index = index;
-          });
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Library'),
-          BottomNavigationBarItem(icon: Icon(Icons.explore), label: 'Explore'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+      body: Row(
+        children: [
+          if (isLandscpae)
+            NavigationRail(
+              selectedIndex: _tabController.index,
+              onDestinationSelected: (index) {
+                setState(() {
+                  _tabController.index = index;
+                });
+              },
+              labelType: NavigationRailLabelType.all,
+              destinations: const [
+                NavigationRailDestination(
+                  icon: Icon(Icons.home),
+                  label: Text('Library'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.explore),
+                  label: Text('Explore'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.person),
+                  label: Text('Profile'),
+                ),
+              ],
+            ),
+          VerticalDivider(thickness: 1,),
+          Expanded(child: IndexedStack(index: _tabController.index, children: _tabs)),
         ],
       ),
+
+      bottomNavigationBar: !isLandscpae
+          ? BottomNavigationBar(
+              currentIndex: _tabController.index,
+              onTap: (index) {
+                setState(() {
+                  _tabController.index = index;
+                });
+              },
+              items: const [
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.home),
+                  label: 'Library',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.explore),
+                  label: 'Explore',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.person),
+                  label: 'Profile',
+                ),
+              ],
+            )
+          : SizedBox(),
     );
   }
 }
