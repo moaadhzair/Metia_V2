@@ -69,7 +69,11 @@ class Tools {
     return original.substring(0, index) + toInsert + original.substring(index);
   }
 
-  static transferToAnotherList(MediaListEntry anime, BuildContext context) {
+  static transferToAnotherList(
+    MediaListEntry anime,
+    BuildContext context,
+    bool shouldPopOnceMore,
+  ) {
     showModalBottomSheet(
       context: context,
       builder: (context) {
@@ -122,6 +126,8 @@ class Tools {
                                     listen: false,
                                   ).reloadUserData();
                                   Navigator.of(context).pop();
+                                  if (shouldPopOnceMore)
+                                    Navigator.of(context).pop();
                                 }
                               },
                               child: const Text('Add'),
@@ -194,9 +200,6 @@ class Tools {
                                                   Navigator.of(
                                                     context,
                                                   ).pop(); // pop modal
-                                                  Navigator.of(
-                                                    context,
-                                                  ).pop(); // pop page
                                                 }
                                               },
                                         child: Stack(

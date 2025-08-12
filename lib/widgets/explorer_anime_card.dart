@@ -81,46 +81,6 @@ class _ExplorerAnimeCardState extends State<ExplorerAnimeCard> {
                               errorWidget: (context, url, error) =>
                                   const Icon(Icons.error),
                             ),
-                            Align(
-                              alignment: Alignment.bottomRight,
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: GestureDetector(
-                                  onTap: () {
-                                    MediaListEntry anime = MediaListEntry(
-                                      id: 0,
-                                      status: "notspecified",
-                                      media: widget.anime,
-                                    );
-                                    anime.setGroup(
-                                      MediaListGroup(
-                                        color: Colors.white,
-                                        name: "notspecifed",
-                                        entries: [],
-                                        isInteractive: false,
-                                        isCustom: false,
-                                      ),
-                                    );
-                                    Tools.transferToAnotherList(anime, context);
-                                  },
-                                  child: ClipRRect(
-                                    child: Container(
-                                      child: Icon(
-                                        Icons.add,
-                                        color: Colors.black,
-                                      ),
-                                      color: const Color.fromARGB(
-                                        121,
-                                        255,
-                                        255,
-                                        255,
-                                      ),
-                                    ),
-                                    borderRadius: BorderRadius.circular(25),
-                                  ),
-                                ),
-                              ),
-                            ),
                             Opacity(
                               opacity: widget.alreadyInLibrary ? 0.60 : 0,
                               child: Container(color: Colors.black),
@@ -134,6 +94,51 @@ class _ExplorerAnimeCardState extends State<ExplorerAnimeCard> {
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
                                     color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            if (!widget.alreadyInLibrary)
+                              Align(
+                                alignment: Alignment.bottomRight,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      MediaListEntry anime = MediaListEntry(
+                                        id: 0,
+                                        status: "notspecified",
+                                        media: widget.anime,
+                                      );
+                                      anime.setGroup(
+                                        MediaListGroup(
+                                          color: Colors.white,
+                                          name: "notspecified",
+                                          entries: [],
+                                          isInteractive: false,
+                                          isCustom: false,
+                                        ),
+                                      );
+                                      Tools.transferToAnotherList(
+                                        anime,
+                                        context,
+                                        false
+                                      );
+                                    },
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(25),
+                                      child: Container(
+                                        color: const Color.fromARGB(
+                                          121,
+                                          255,
+                                          255,
+                                          255,
+                                        ),
+                                        child: Icon(
+                                          Icons.add,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),

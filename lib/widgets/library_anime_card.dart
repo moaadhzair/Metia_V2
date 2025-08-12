@@ -99,10 +99,14 @@ class _AnimeCardState extends State<AnimeCard> {
                         CupertinoContextMenuAction(
                           trailingIcon: CupertinoIcons.square_arrow_right,
                           child: const Text("Change to Another List"),
-                          onPressed: () {
+                          onPressed: () async {
                             //TODO: change to another list
 
-                            Tools.transferToAnotherList(widget.anime, context);
+                            await Tools.transferToAnotherList(
+                              widget.anime,
+                              context,
+                              true,
+                            );
                           },
                         ),
                       // Remove from list
@@ -125,12 +129,11 @@ class _AnimeCardState extends State<AnimeCard> {
                           },
                         ),
                     ],
-                    
+
                     builder: (context, animation) {
                       return GestureDetector(
                         onTap: () {
                           debugPrint("tapped on lamo");
-                          
                         },
                         child: SizedBox(
                           height: 183,
@@ -266,7 +269,6 @@ class _AnimeCardState extends State<AnimeCard> {
     );
   }
 
- 
   _buildEpAiring(NextAiringEpisode nextAiring) {
     final int airingAt = nextAiring.airingAt;
     final int episode = nextAiring.episode;

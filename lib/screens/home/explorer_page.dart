@@ -261,7 +261,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                     context: context,
                     anime: media,
                     index: index,
-                    listName: headLine,
+                    listName: listName,
                   ),
                 );
               },
