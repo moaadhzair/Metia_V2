@@ -4,12 +4,14 @@ import 'dart:convert';
 import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:metia/models/logger.dart';
 import 'package:metia/models/login_provider.dart';
 import 'package:metia/models/theme_provider.dart';
 import 'package:metia/screens/home/explorer_page.dart';
 import 'package:metia/screens/home/library_page.dart';
 import 'package:metia/screens/home/profile_page.dart';
 import 'package:http/http.dart' as http;
+import 'package:metia/screens/logging_page.dart';
 import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
@@ -42,7 +44,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   Future<void> initDeepLinks() async {
     _linkSubscription = AppLinks().uriLinkStream.listen((uri) async {
-      debugPrint('Received deep link: $uri');
+
+      Logger.log('Received deep link: $uri');
       final authorizationCode = uri.toString().replaceAll("metia://?code=", "");
 
       final tokenEndpoint = Uri.https('anilist.co', '/api/v2/oauth/token');
@@ -135,8 +138,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 ),
               ],
             ),
-          VerticalDivider(thickness: 1,),
-          Expanded(child: IndexedStack(index: _tabController.index, children: _tabs)),
+          if (isLandscpae) VerticalDivider(thickness: 1),
+
+          Expanded(
+            child: IndexedStack(index: _tabController.index, children: _tabs),
+          ),
         ],
       ),
 
@@ -224,11 +230,21 @@ _menuItemList(BuildContext context) {
       height: 36,
       child: Text('Settings'),
     ),
+    const PopupMenuItem<String>(
+      value: 'logs',
+      height: 36,
+      child: Text('Logs'),
+    ),
   ];
 }
 
 _switchMenuButtons(value, context) {
   switch (value) {
+    case 'logs':
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => LoggingPage()),
+      );
+      break;
     case 'logout':
       Provider.of<UserProvider>(context, listen: false).logOut();
       break;

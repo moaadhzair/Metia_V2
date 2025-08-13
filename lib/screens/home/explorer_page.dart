@@ -39,57 +39,24 @@ class _ExplorerPageState extends State<ExplorerPage> {
     user = Provider.of<UserProvider>(context).user;
     bool isLoggedIn = Provider.of<UserProvider>(context).isLoggedIn;
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: !(Platform.isIOS || Platform.isMacOS)
-            ? RefreshIndicator(
-                onRefresh: () async {
-                  await Provider.of<UserProvider>(
-                    context,
-                    listen: false,
-                  ).reloadUserData();
-                },
-                child: CustomScrollView(
-                  slivers: [
-                    if (Platform.isIOS || Platform.isMacOS)
-                      CupertinoSliverRefreshControl(
-                        onRefresh: () async {
-                          await Provider.of<UserProvider>(
-                            context,
-                            listen: false,
-                          ).reloadUserData();
-                        },
-                      ),
-                    _buildSection(user.explorerContent[0], "Trending Now"),
-                    SliverToBoxAdapter(child: SizedBox(height: 16)),
-                    _buildSection(
-                      user.explorerContent[1],
-                      "Popular This Season",
-                    ),
-                    SliverToBoxAdapter(child: SizedBox(height: 16)),
-                    _buildSection(
-                      user.explorerContent[2],
-                      "Upcoming This Season",
-                    ),
-                    SliverToBoxAdapter(child: SizedBox(height: 16)),
-                    _buildSection(user.explorerContent[3], "All Time Popular"),
-                    SliverToBoxAdapter(child: SizedBox(height: 16)),
-                    SliverToBoxAdapter(
-                      child: Text(
-                        "Top 100 Anime",
-                        style: TextStyle(
-                          fontSize: Theme.of(
-                            context,
-                          ).textTheme.headlineSmall!.fontSize,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                    _buildTop100AnimeSection(user.explorerContent[4]),
-                  ],
-                ),
-              )
-            : CustomScrollView(
+      body: isLoggedIn
+          ? _buidlExplorerBody()
+          : Center(child: Text("Please log in to explore anime")),
+    );
+  }
+
+  _buidlExplorerBody() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: !(Platform.isIOS || Platform.isMacOS)
+          ? RefreshIndicator(
+              onRefresh: () async {
+                await Provider.of<UserProvider>(
+                  context,
+                  listen: false,
+                ).reloadUserData();
+              },
+              child: CustomScrollView(
                 slivers: [
                   if (Platform.isIOS || Platform.isMacOS)
                     CupertinoSliverRefreshControl(
@@ -110,6 +77,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                   ),
                   SliverToBoxAdapter(child: SizedBox(height: 16)),
                   _buildSection(user.explorerContent[3], "All Time Popular"),
+                  SliverToBoxAdapter(child: SizedBox(height: 16)),
                   SliverToBoxAdapter(
                     child: Text(
                       "Top 100 Anime",
@@ -124,7 +92,39 @@ class _ExplorerPageState extends State<ExplorerPage> {
                   _buildTop100AnimeSection(user.explorerContent[4]),
                 ],
               ),
-      ),
+            )
+          : CustomScrollView(
+              slivers: [
+                if (Platform.isIOS || Platform.isMacOS)
+                  CupertinoSliverRefreshControl(
+                    onRefresh: () async {
+                      await Provider.of<UserProvider>(
+                        context,
+                        listen: false,
+                      ).reloadUserData();
+                    },
+                  ),
+                _buildSection(user.explorerContent[0], "Trending Now"),
+                SliverToBoxAdapter(child: SizedBox(height: 16)),
+                _buildSection(user.explorerContent[1], "Popular This Season"),
+                SliverToBoxAdapter(child: SizedBox(height: 16)),
+                _buildSection(user.explorerContent[2], "Upcoming This Season"),
+                SliverToBoxAdapter(child: SizedBox(height: 16)),
+                _buildSection(user.explorerContent[3], "All Time Popular"),
+                SliverToBoxAdapter(
+                  child: Text(
+                    "Top 100 Anime",
+                    style: TextStyle(
+                      fontSize: Theme.of(
+                        context,
+                      ).textTheme.headlineSmall!.fontSize,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                _buildTop100AnimeSection(user.explorerContent[4]),
+              ],
+            ),
     );
   }
 
