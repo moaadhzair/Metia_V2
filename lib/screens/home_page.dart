@@ -44,7 +44,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   Future<void> initDeepLinks() async {
     _linkSubscription = AppLinks().uriLinkStream.listen((uri) async {
-
       Logger.log('Received deep link: $uri');
       final authorizationCode = uri.toString().replaceAll("metia://?code=", "");
 
@@ -89,14 +88,28 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         surfaceTintColor: Colors.transparent,
         backgroundColor: Colors.transparent,
         actions: [
-          if (Provider.of<UserProvider>(context).isLoggedIn)
-            PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert),
-              onSelected: (value) {
-                _switchMenuButtons(value, context);
-              },
-              itemBuilder: (BuildContext context) => _menuItemList(context),
-            ),
+          (Provider.of<UserProvider>(context).isLoggedIn)
+              ? PopupMenuButton<String>(
+                  icon: const Icon(Icons.more_vert),
+                  onSelected: (value) {
+                    _switchMenuButtons(value, context);
+                  },
+                  itemBuilder: (BuildContext context) => _menuItemList(context),
+                )
+              : PopupMenuButton<String>(
+                  icon: const Icon(Icons.more_vert),
+                  onSelected: (value) {
+                    _switchMenuButtons(value, context);
+                  },
+                  itemBuilder: (BuildContext context) => [
+                    const PopupMenuItem<String>(
+                      enabled: true,
+                      height: 36,
+                      value: 'logs',
+                      child: Text('Logs'),
+                    ),
+                  ],
+                ),
         ],
 
         leading: Padding(
@@ -230,20 +243,16 @@ _menuItemList(BuildContext context) {
       height: 36,
       child: Text('Settings'),
     ),
-    const PopupMenuItem<String>(
-      value: 'logs',
-      height: 36,
-      child: Text('Logs'),
-    ),
+    const PopupMenuItem<String>(value: 'logs', height: 36, child: Text('Logs')),
   ];
 }
 
 _switchMenuButtons(value, context) {
   switch (value) {
     case 'logs':
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => LoggingPage()),
-      );
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (context) => LoggingPage()));
       break;
     case 'logout':
       Provider.of<UserProvider>(context, listen: false).logOut();
