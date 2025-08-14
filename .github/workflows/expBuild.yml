@@ -41,6 +41,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: List available simulator runtimes
+        run: xcrun simctl list runtimes
+
       - name: Show available Xcode versions
         run: ls /Applications | grep Xcode
       

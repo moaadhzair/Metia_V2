@@ -248,6 +248,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                     }
                   }
                 }
+                
                 return SizedBox(
                   width:
                       itemWidth +
