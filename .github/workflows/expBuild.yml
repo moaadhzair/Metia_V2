@@ -57,8 +57,8 @@ jobs:
 
       - run: pod repo update
         working-directory: ios
-
-      - run: flutter build ios --release --no-codesign -xcconfig "IPHONEOS_DEPLOYMENT_TARGET=18.4"
+          
+      - run: flutter build ios --release --no-codesign
 
       - run: mkdir Payload
         working-directory: build/ios/iphoneos
