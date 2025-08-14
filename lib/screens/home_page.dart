@@ -70,12 +70,22 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               context,
               listen: false,
             ).logIn(responseData['access_token'].toString());
+          } else {
+            Logger.log(
+              'not mounted',
+              level: 'INFO',
+              details:
+                  'the \'if\' conition that check if mounted to log in the user by his access token isn/t true',
+            );
           }
         } else {
-          throw Exception('Failed to retrieve access token: ${response.body}');
+          throw Logger.log(
+            'Failed to retrieve access token: ${response.body}',
+            level: 'ERROR',
+          );
         }
       } catch (e) {
-        throw Exception('Request failed: $e');
+        throw Logger.log('Request failed: $e', level: 'ERROR');
       }
     });
   }

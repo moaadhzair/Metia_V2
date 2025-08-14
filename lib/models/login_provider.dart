@@ -6,6 +6,7 @@ import 'package:metia/data/user/credentials.dart';
 import 'package:metia/data/user/profile.dart';
 import 'package:metia/data/user/user_data.dart';
 import 'package:metia/data/user/user_library.dart';
+import 'package:metia/models/logger.dart';
 import 'package:url_launcher/url_launcher.dart';
 // ignore: depend_on_referenced_packages
 import 'package:http/http.dart' as http;
@@ -94,9 +95,12 @@ class UserProvider extends ChangeNotifier {
 
   void logIn(String authKey) async {
     await UserData.saveAuthKey(authKey);
+    Logger.log('Saved auth key of the user', level: 'INFO');
     await _getUserData();
+    Logger.log('got user data with the name of ${user.name}', level: 'INFO');
     _isLoggedIn = true;
     notifyListeners();
+    Logger.log('Notified the listening build methods to rebuild the app', level: 'INFO');
   }
 
   Future<void> reloadUserData() async {

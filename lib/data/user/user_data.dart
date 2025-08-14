@@ -30,6 +30,7 @@ class UserData {
       isar.userCredentials.put(creds);
     });
     return true;
+    
   }
 
   static Future<String> getAuthKey() async {
