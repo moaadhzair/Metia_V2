@@ -37,7 +37,7 @@ jobs:
 
   build-ios:
     name: Build iOS
-    runs-on: macos-latest
+    runs-on: macos-14
     steps:
       - uses: actions/checkout@v3
 
@@ -47,10 +47,6 @@ jobs:
       - name: Show available Xcode versions
         run: ls /Applications | grep Xcode
       
-      
-      - name: Select Xcode 16.4
-        run: sudo xcode-select -s "/Applications/Xcode_16.4.app"
-
       # Setup Flutter
       - uses: subosito/flutter-action@v2
         with:
