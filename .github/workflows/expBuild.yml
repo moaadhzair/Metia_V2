@@ -40,6 +40,9 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
+
+      - name: Show available Xcode versions
+        run: ls /Applications | grep Xcode
       
       
       - name: Select Xcode 15.4
