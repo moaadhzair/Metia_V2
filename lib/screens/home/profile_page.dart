@@ -197,6 +197,11 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ),
         ),
+        SliverToBoxAdapter(child: Padding(
+          padding: const EdgeInsets.only(left: 16, bottom: 8),
+          child: Text("Activites:", style: TextStyle(fontWeight: FontWeight.w700, fontSize: Theme.of(context).textTheme.headlineSmall!.fontSize)),
+        )),
+        
         //user's activity
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
