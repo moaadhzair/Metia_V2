@@ -209,22 +209,22 @@ class UserProvider extends ChangeNotifier {
           }
         }
 
-        trending: Page(page: 1, perPage: 6) {
+        trending: Page(page: 1, perPage: 99) {
           media(sort: TRENDING_DESC, type: ANIME, isAdult: false) {
             ...mediaFields
           }
         }
-        season: Page(page: 1, perPage: 6) {
+        season: Page(page: 1, perPage: 99) {
           media(season: \$season, seasonYear: \$seasonYear, sort: POPULARITY_DESC, type: ANIME, isAdult: false) {
             ...mediaFields
           }
         }
-        nextSeason: Page(page: 1, perPage: 6) {
+        nextSeason: Page(page: 1, perPage: 99) {
           media(season: \$nextSeason, seasonYear: \$nextYear, sort: POPULARITY_DESC, type: ANIME, isAdult: false) {
             ...mediaFields
           }
         }
-        popular: Page(page: 1, perPage: 6) {
+        popular: Page(page: 1, perPage: 99) {
           media(sort: POPULARITY_DESC, type: ANIME, isAdult: false) {
             ...mediaFields
           }
