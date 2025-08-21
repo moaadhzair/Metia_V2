@@ -65,13 +65,13 @@ class _ExplorerAnimeCardState extends State<ExplorerAnimeCard> {
                     child: SizedBox(
                       height: 183,
                       width: 135,
-                      child: ClipRRect(
+                      child: ClipRRect( 
                         borderRadius: BorderRadius.circular(12),
                         child: Stack(
                           fit: StackFit.expand,
                           children: [
                             CachedNetworkImage(
-                              imageUrl: widget.anime.coverImage.extraLarge,
+                              imageUrl: widget.anime.coverImage.large,
                               fit: BoxFit.cover,
                               placeholder: (context, url) => const Center(
                                 child: CircularProgressIndicator(

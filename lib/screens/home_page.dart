@@ -25,13 +25,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late final TabController _tabController;
   StreamSubscription<Uri>? _linkSubscription;
 
-  final List<Widget> _tabs = [LibraryPage(), ExplorerPage(), ProfilePage()];
+  //final List<Widget> _tabs = [LibraryPage(), ExplorerPage(), ProfilePage()];
   bool isLandscpae = false;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: _tabs.length, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     initDeepLinks();
   }
 
@@ -164,7 +164,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           if (isLandscpae) VerticalDivider(thickness: 1),
 
           Expanded(
-            child: IndexedStack(index: _tabController.index, children: _tabs),
+            child: TabBarView(
+              controller: _tabController,
+              children: [LibraryPage(), ExplorerPage(), ProfilePage()],
+            ),
           ),
         ],
       ),

@@ -70,6 +70,12 @@ jobs:
         run: zip -qq -r -9 metia.ipa Payload
         working-directory: build/ios/iphoneos
 
+      - name: Upload Unsigned iOS IPA as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-ipa-unsigned
+          path: build/ios/iphoneos/metia.ipa
+
       # --- Begin: Upload to ipasign.cc and poll for result ---
       - name: Sign IPA with ipasign.cc
         id: sign_ipa
