@@ -100,7 +100,10 @@ class UserProvider extends ChangeNotifier {
     Logger.log('got user data with the name of ${user.name}', level: 'INFO');
     _isLoggedIn = true;
     notifyListeners();
-    Logger.log('Notified the listening build methods to rebuild the app', level: 'INFO');
+    Logger.log(
+      'Notified the listening build methods to rebuild the app',
+      level: 'INFO',
+    );
   }
 
   Future<void> reloadUserData() async {
@@ -522,6 +525,49 @@ class UserProvider extends ChangeNotifier {
     _isLoggedIn = false;
     UserData.deletAuthKey();
     notifyListeners();
+  }
+
+  Future<void> deleteCustomList(String ListName) async {
+    const String url = 'https://graphql.anilist.co';
+
+    List userAnimeLists = user.userLists;
+
+    List<String> userAnimeCustomLists = userAnimeLists
+        .where((list) => list['isCustom'] == true)
+        .map<String>((list) => list['name'] as String)
+        .toList();
+
+    userAnimeCustomLists.remove(ListName);
+
+    final Map<String, dynamic> body = {
+      'query': '''
+      mutation(\$animeListOptions: MediaListOptionsInput) {
+        UpdateUser(animeListOptions: \$animeListOptions) {
+          id
+        }
+      }
+    ''',
+      'variables': {
+        'animeListOptions': {'customLists': userAnimeCustomLists},
+      },
+    };
+
+    String authKey = await _getAuthKey();
+
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ${authKey}',
+        'Accept': 'application/json',
+      },
+      body: jsonEncode(body),
+    );
+
+    if (response.statusCode == 200) {
+    } else {
+      print('Failed to add custom list: ${response.body}');
+    }
   }
 
   Future<void> createCustomList(String newListName) async {

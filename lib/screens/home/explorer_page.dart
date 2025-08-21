@@ -111,6 +111,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                 _buildSection(user.explorerContent[2], "Upcoming This Season"),
                 SliverToBoxAdapter(child: SizedBox(height: 16)),
                 _buildSection(user.explorerContent[3], "All Time Popular"),
+                SliverToBoxAdapter(child: SizedBox(height: 16)),
                 SliverToBoxAdapter(
                   child: Text(
                     "Top 100 Anime",
@@ -122,6 +123,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
                     ),
                   ),
                 ),
+                SliverToBoxAdapter(child: SizedBox(height: 16)),
+
                 _buildTop100AnimeSection(user.explorerContent[4]),
               ],
             ),
@@ -248,7 +251,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                     }
                   }
                 }
-                
+
                 return SizedBox(
                   width:
                       itemWidth +

@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:metia/anilist/anime.dart';
 import 'package:metia/data/user/user_library.dart';
 import 'package:metia/models/login_provider.dart';
+import 'package:metia/models/theme_provider.dart';
 import 'package:provider/provider.dart';
 
 class Tools {
@@ -175,6 +176,87 @@ class Tools {
                                     child: Opacity(
                                       opacity: isCurrent ? 0.5 : 1,
                                       child: ElevatedButton(
+                                        onLongPress: () {
+                                          if (listDetails["isCustom"] == true) {
+                                            showDialog(
+                                              context: context,
+                                              builder: (context) {
+                                                return AlertDialog(
+                                                  title: const Text(
+                                                    'Delete Custom List',
+                                                  ),
+                                                  content: Text(
+                                                    'Are you sure you want to delete the custom list "${listDetails["name"]}"? This action cannot be undone.',
+                                                  ),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed: () {
+                                                        Navigator.of(
+                                                          context,
+                                                        ).pop();
+                                                      },
+                                                      child: const Text(
+                                                        'Cancel',
+                                                      ),
+                                                    ),
+                                                    ElevatedButton(
+                                                      style:
+                                                          ElevatedButton.styleFrom(
+                                                            backgroundColor:
+                                                                Colors.red,
+                                                          ),
+                                                      onPressed: () async {
+                                                        setModalState(
+                                                          () =>
+                                                              isLoading = true,
+                                                        );
+                                                        await Provider.of<
+                                                              UserProvider
+                                                            >(
+                                                              context,
+                                                              listen: false,
+                                                            )
+                                                            .deleteCustomList(
+                                                              listDetails["name"],
+                                                            );
+                                                        await Provider.of<
+                                                              UserProvider
+                                                            >(
+                                                              context,
+                                                              listen: false,
+                                                            )
+                                                            .reloadUserData();
+                                                        Navigator.of(
+                                                          context,
+                                                        ).pop(); // close dialog
+                                                        setModalState(
+                                                          () =>
+                                                              isLoading = false,
+                                                        );
+                                                      },
+                                                      child: Text(
+                                                        'Delete',
+                                                        style: TextStyle(
+                                                          color:
+                                                              Provider.of<
+                                                                    ThemeProvider
+                                                                  >(
+                                                                    context,
+                                                                    listen:
+                                                                        false,
+                                                                  )
+                                                                  .isDarkMode
+                                                              ? Colors.white
+                                                              : Colors.black,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                );
+                                              },
+                                            );
+                                          }
+                                        },
                                         onPressed: isCurrent
                                             ? null
                                             : () async {
@@ -201,6 +283,8 @@ class Tools {
                                                     context,
                                                   ).pop(); // pop modal
                                                 }
+                                                if (shouldPopOnceMore)
+                                                  Navigator.of(context).pop();
                                               },
                                         child: Stack(
                                           children: [

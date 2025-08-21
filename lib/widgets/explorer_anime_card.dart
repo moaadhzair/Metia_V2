@@ -60,7 +60,7 @@ class _ExplorerAnimeCardState extends State<ExplorerAnimeCard> {
                   //cover
                   GestureDetector(
                     onTap: () {
-                      debugPrint("tapped on lamo");
+                      debugPrint("tapped on ${widget.anime.title.english}");
                     },
                     child: SizedBox(
                       height: 183,

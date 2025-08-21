@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:metia/anilist/anime.dart';
 import 'package:metia/data/user/profile.dart';
 import 'package:metia/models/login_provider.dart';
+import 'package:metia/models/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 
@@ -37,8 +38,8 @@ class MediaListGroup {
       color: json['name'] == "Watching"
           ? Colors.green
           : json['name'] == "Airing"
-          ? Colors.orange
-          : Colors.white,
+              ? Colors.orange
+              : Colors.white,
       isInteractive: true,
       name: json['name'],
       entries: [],
@@ -66,12 +67,9 @@ class MediaListGroup {
     );
   }
 
-  // ---- Essentials from API injected here ----
-
   Future<String?> _getAuthKey(BuildContext context) async {
-    //final prefs = await SharedPreferences.getInstance();
+    await Logger.log('_getAuthKey called');
     final loginProvider = Provider.of<UserProvider>(context, listen: false);
-
     return loginProvider.getAuthKey();
   }
 
@@ -80,6 +78,10 @@ class MediaListGroup {
     MediaListEntry entry,
     String customList,
   ) async {
+    await Logger.log(
+      'addToCustomList called',
+      details: 'mediaId=${entry.media.id}, customList=$customList',
+    );
     final authKey = await _getAuthKey(context);
     final url = Uri.parse('https://graphql.anilist.co');
 
@@ -186,16 +188,23 @@ class MediaListGroup {
     );
 
     if (response.statusCode != 200) {
-      debugPrint('Failed to add to custom list: ${response.body}');
+      await Logger.log(
+        'Failed to add to custom list',
+        level: 'ERROR',
+        details: response.body,
+      );
     }
   }
 
-  // nice
   Future<void> addToStatusList(
     BuildContext context,
     int mediaId,
     String status,
   ) async {
+    await Logger.log(
+      'addToStatusList called',
+      details: 'mediaId=$mediaId, status=$status',
+    );
     final authKey = await _getAuthKey(context);
     final url = Uri.parse('https://graphql.anilist.co');
 
@@ -232,11 +241,19 @@ class MediaListGroup {
     );
 
     if (response.statusCode != 200) {
-      print('Failed to add to status list: ${response.body}');
+      await Logger.log(
+        'Failed to add to status list',
+        level: 'ERROR',
+        details: response.body,
+      );
     }
   }
 
   Future<void> deleteEntry(BuildContext context, int entryId) async {
+    await Logger.log(
+      'deleteEntry called',
+      details: 'entryId=$entryId',
+    );
     final authKey = await _getAuthKey(context);
     final url = Uri.parse('https://graphql.anilist.co');
 
@@ -260,7 +277,11 @@ class MediaListGroup {
     );
 
     if (response.statusCode != 200) {
-      print('Failed to delete entry: ${response.body}');
+      await Logger.log(
+        'Failed to delete entry',
+        level: 'ERROR',
+        details: response.body,
+      );
     }
   }
 
@@ -269,15 +290,26 @@ class MediaListGroup {
     String customListName,
     String statusName,
   ) async {
+    await Logger.log(
+      'changeFromCustomListToStatus called',
+      details: 'mediaId=$mediaId, customListName=$customListName, statusName=$statusName',
+    );
     //await addAnimeToStatus(mediaId, statusName);
   }
-  static Future<void> removeAnimeFromCustomList() async {}
+
+  static Future<void> removeAnimeFromCustomList() async {
+    await Logger.log('removeAnimeFromCustomList called');
+  }
 
   Future<void> moveEntryFromCustomListToCustomList(
     BuildContext context,
     MediaListEntry entry,
     String newCustomList,
   ) async {
+    await Logger.log(
+      'moveEntryFromCustomListToCustomList called',
+      details: 'mediaId=${entry.media.id}, newCustomList=$newCustomList',
+    );
     await addToCustomList(context, entry, newCustomList);
   }
 
@@ -287,24 +319,40 @@ class MediaListGroup {
     String listName,
     bool isCustom,
   ) async {
+    await Logger.log(
+      'changeEntryStatus called',
+      details: 'mediaId=${entry.media.id}, listName=$listName, isCustom=$isCustom',
+    );
     if (isCustom) {
       if (entry.getGroup()!.isCustom) {
-        debugPrint("Send the entry from custom to custom");
+        await Logger.log(
+          "Send the entry from custom to custom",
+          details: 'mediaId=${entry.media.id}, listName=$listName',
+        );
         await moveEntryFromCustomListToCustomList(context, entry, listName);
       } else {
-        debugPrint("Send the entry from status to custom");
+        await Logger.log(
+          "Send the entry from status to custom",
+          details: 'mediaId=${entry.media.id}, listName=$listName',
+        );
         await addToCustomList(context, entry, listName);
       }
     } else {
       if (entry.getGroup()!.isCustom) {
-        debugPrint("Send the entry from not custom to status");
+        await Logger.log(
+          "Send the entry from not custom to status",
+          details: 'mediaId=${entry.media.id}, listName=$listName',
+        );
         await addToStatusList(
           context,
           entry.media.id,
           listName == "Watching" ? "CURRENT" : listName,
         );
       } else {
-        debugPrint("Send the entry from not status to status");
+        await Logger.log(
+          "Send the entry from not status to status",
+          details: 'mediaId=${entry.media.id}, listName=$listName',
+        );
         await addToStatusList(
           context,
           entry.media.id,
@@ -318,6 +366,10 @@ class MediaListGroup {
     BuildContext context,
     int mediaId,
   ) async {
+    await Logger.log(
+      '_getCustomLists called',
+      details: 'mediaId=$mediaId',
+    );
     final authKey = await _getAuthKey(context);
     final url = Uri.parse('https://graphql.anilist.co');
 
@@ -351,6 +403,11 @@ class MediaListGroup {
         customListsMap?.keys.where((k) => customListsMap[k] == true) ?? [],
       );
     } else {
+      await Logger.log(
+        'Failed to get custom lists',
+        level: 'ERROR',
+        details: response.body,
+      );
       return [];
     }
   }

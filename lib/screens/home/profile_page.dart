@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
@@ -107,7 +108,6 @@ class _ProfilePageState extends State<ProfilePage> {
       slivers: [
         if (isApple)
           CupertinoSliverRefreshControl(
-
             onRefresh: () async {
               await Provider.of<UserProvider>(
                 context,
@@ -197,11 +197,19 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ),
         ),
-        SliverToBoxAdapter(child: Padding(
-          padding: const EdgeInsets.only(left: 16, bottom: 8),
-          child: Text("Activites:", style: TextStyle(fontWeight: FontWeight.w700, fontSize: Theme.of(context).textTheme.headlineSmall!.fontSize)),
-        )),
-        
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.only(left: 16, bottom: 8),
+            child: Text(
+              "Activites:",
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
+              ),
+            ),
+          ),
+        ),
+
         //user's activity
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -278,13 +286,13 @@ class _ProfilePageState extends State<ProfilePage> {
                   children: [
                     activity.media.bannerImage != null
                         ? CachedNetworkImage(
-                            imageUrl: activity.media.bannerImage!,
-                            fit: BoxFit.cover,
-                            placeholder: (context, url) =>
-                                Container(color: Colors.grey[300]),
-                            errorWidget: (context, url, error) =>
-                                Container(color: Colors.grey),
-                          )
+                          imageUrl: activity.media.bannerImage!,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) =>
+                              Container(color: Colors.grey[300]),
+                          errorWidget: (context, url, error) =>
+                              Container(color: Colors.grey),
+                        )
                         : Container(color: activity.media.color),
                     Container(
                       decoration: BoxDecoration(
@@ -298,6 +306,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                       ),
                     ),
+
                     Padding(
                       padding: const EdgeInsets.all(8),
                       child: Column(
@@ -308,6 +317,8 @@ class _ProfilePageState extends State<ProfilePage> {
                             activity.status == "watched episode"
                                 ? "Watched episode ${activity.progress} of ${activity.media.title.english ?? activity.media.title.romaji ?? activity.media.title.native}"
                                 : "${activity.status[0].toUpperCase()}${activity.status.substring(1)} ${activity.media.title.english ?? activity.media.title.romaji ?? activity.media.title.native}",
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               fontWeight: FontWeight.w500,
                               color: ColorScheme.fromSeed(
@@ -350,7 +361,7 @@ class _ProfilePageState extends State<ProfilePage> {
               style: TextStyle(fontWeight: FontWeight.w600),
               textAlign: TextAlign.center,
             ),
-            Text("$data"),
+            Text("$data${name == "Hours\nWatched" ? "h" : ""}"),
           ],
         ),
       ),

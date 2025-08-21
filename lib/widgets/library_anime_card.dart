@@ -206,65 +206,70 @@ class _AnimeCardState extends State<AnimeCard> {
         mediaListGroup?.name == "Airing";
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: Row(
-        mainAxisAlignment: isNewEpisodeTab
-            ? MainAxisAlignment.center
-            : MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          if (!isNewEpisodeTab)
-            Text(
-              "${widget.anime.progress}/${widget.anime.media.episodes ?? "?"}",
-              style: TextStyle(
-                fontSize: Theme.of(context).textTheme.bodyMedium!.fontSize,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          isNewEpisodeTab
-              ? Row(
-                  spacing: 2,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      "${(widget.anime.media.nextAiringEpisode!.episode - 1) - widget.anime.progress!} Ep Behind",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: Theme.of(
-                          context,
-                        ).textTheme.bodyMedium!.fontSize,
-                        color: Colors.orange,
+      padding: EdgeInsets.symmetric(horizontal: isNewEpisodeTab ? 0 : 8),
+      child: Center(
+        child: Row(
+          mainAxisAlignment: isNewEpisodeTab
+              ? MainAxisAlignment.center
+              : MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: isNewEpisodeTab
+              ? [
+                  Row(
+                    spacing: 2,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        "${(widget.anime.media.nextAiringEpisode!.episode - 1) - widget.anime.progress!} Ep Behind",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: Theme.of(
+                            context,
+                          ).textTheme.bodySmall!.fontSize,
+                          color: Colors.orange,
+                        ),
                       ),
-                    ),
-                    const Icon(
-                      Icons.notifications_active,
-                      color: Colors.orange,
-                      size: 16,
-                    ),
-                  ],
-                )
-              : Row(
-                  spacing: 2,
-                  children: [
-                    Text(
-                      widget.anime.media.averageScore == null ||
-                              widget.anime.media.averageScore == 0
-                          ? "0.0"
-                          : widget.anime.media.averageScore
-                                .toString()
-                                .replaceRange(1, 1, '.'),
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: Theme.of(
-                          context,
-                        ).textTheme.bodyMedium!.fontSize,
+                      const Icon(
+                        Icons.notifications_active,
                         color: Colors.orange,
+                        size: 16,
                       ),
+                    ],
+                  ),
+                ]
+              : [
+                  Text(
+                    "${widget.anime.progress}/${widget.anime.media.episodes ?? "?"}",
+                    style: TextStyle(
+                      fontSize: Theme.of(
+                        context,
+                      ).textTheme.bodyMedium!.fontSize,
+                      fontWeight: FontWeight.bold,
                     ),
-                    const Icon(Icons.star, color: Colors.orange, size: 16),
-                  ],
-                ),
-        ],
+                  ),
+                  Row(
+                    spacing: 2,
+                    children: [
+                      Text(
+                        widget.anime.media.averageScore == null ||
+                                widget.anime.media.averageScore == 0
+                            ? "0.0"
+                            : widget.anime.media.averageScore
+                                  .toString()
+                                  .replaceRange(1, 1, '.'),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: Theme.of(
+                            context,
+                          ).textTheme.bodyMedium!.fontSize,
+                          color: Colors.orange,
+                        ),
+                      ),
+                      const Icon(Icons.star, color: Colors.orange, size: 16),
+                    ],
+                  ),
+                ],
+        ),
       ),
     );
   }
